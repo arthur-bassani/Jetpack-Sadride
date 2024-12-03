@@ -16,7 +16,7 @@ void Movimento (int *y, float *velocidade, int jetpackaltura) {
     }else {
         *velocidade += aceleracao;
     }
-    if(*y += *velocidade <= 450){
+    if(*y += *velocidade <= 450 - jetpackaltura){
         *y += *velocidade;
     }else{
         *y = 450 - jetpackaltura;   
