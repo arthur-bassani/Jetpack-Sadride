@@ -48,7 +48,7 @@ void Movimento (int *y, int *velocidade) {
     }
     *y += *velocidade;
     
-    if ()
+
 }
 //----------------------------------------------------------------------------------
 // Main entry point
