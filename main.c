@@ -30,12 +30,26 @@
 //----------------------------------------------------------------------------------
 Camera camera = { 0 };
 Vector3 cubePosition = { 0 };
-
+typedef struct  {
+    int x, y;
+    int velocidade;
+    int largura, altura;
+}Personagem_t;
 //----------------------------------------------------------------------------------
 // Local Functions Declaration
 //----------------------------------------------------------------------------------
 static void UpdateDrawFrame(void);          // Update and draw one frame
-
+void Movimento (int *y, int *velocidade) {
+    int aceleracao = 1;
+    if (IsKeyDown(KEY_SPACE)) {
+        *velocidade = -10;
+    }else {
+        *velocidade += aceleracao;
+    }
+    *y += *velocidade;
+    
+    if ()
+}
 //----------------------------------------------------------------------------------
 // Main entry point
 //----------------------------------------------------------------------------------
@@ -47,13 +61,19 @@ int main()
     const int screenHeight = 450;
 
     InitWindow(screenWidth, screenHeight, "raylib");
-
+    
     camera.position = (Vector3){ 10.0f, 10.0f, 8.0f };
     camera.target = (Vector3){ 0.0f, 0.0f, 0.0f };
     camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };
     camera.fovy = 60.0f;
     camera.projection = CAMERA_PERSPECTIVE;
 
+    Personagem_t jetpack;
+    jetpack.x = 200;
+    jetpack.y = 600;
+    jetpack.velocidade = 10;
+    jetpack.largura = 30;
+    jetpack.altura = 50;
     //--------------------------------------------------------------------------------------
 
 #if defined(PLATFORM_WEB)
@@ -66,6 +86,13 @@ int main()
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
         UpdateDrawFrame();
+        BeginDrawing();
+        DrawRectangle(jetpack.x, jetpack.y, jetpack.largura, jetpack.altura, BLACK);
+        ClearBackground(RAYWHITE);
+
+        Movimento (&jetpack.y, &jetpack.velocidade);
+
+        EndDrawing();
     }
 #endif
 
