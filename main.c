@@ -1,135 +1,58 @@
-/*******************************************************************************************
-*
-*   raylib [core] example - Basic 3d example
-*
-*   Welcome to raylib!
-*
-*   To compile example, just press F5.
-*   Note that compiled executable is placed in the same folder as .c file
-*
-*   You can find all basic examples on C:\raylib\raylib\examples folder or
-*   raylib official webpage: www.raylib.com
-*
-*   Enjoy using raylib. :)
-*
-*   This example has been created using raylib 1.0 (www.raylib.com)
-*   raylib is licensed under an unmodified zlib/libpng license (View raylib.h for details)
-*
-*   Copyright (c) 2013-2024 Ramon Santamaria (@raysan5)
-*
-********************************************************************************************/
 
 #include "raylib.h"
 
-#if defined(PLATFORM_WEB)
-    #include <emscripten/emscripten.h>
-#endif
-
-//----------------------------------------------------------------------------------
-// Local Variables Definition (local to this module)
-//----------------------------------------------------------------------------------
-Camera camera = { 0 };
-Vector3 cubePosition = { 0 };
 typedef struct  {
     int x, y;
-    int velocidade;
+    float velocidade;
     int largura, altura;
 }Personagem_t;
-//----------------------------------------------------------------------------------
-// Local Functions Declaration
-//----------------------------------------------------------------------------------
-static void UpdateDrawFrame(void);          // Update and draw one frame
-void Movimento (int *y, int *velocidade) {
-    int aceleracao = 1;
+
+void Movimento (int *y, float *velocidade, int jetpackaltura) {
+    
+    if(*y < 450){
+    float aceleracao = 0.5;
     if (IsKeyDown(KEY_SPACE)) {
-        *velocidade = -10;
+        *velocidade = -5;
     }else {
         *velocidade += aceleracao;
     }
-    *y += *velocidade;
-    
-    if ()
+    if(*y += *velocidade <= 450){
+        *y += *velocidade;
+    }else{
+        *y = 450 - jetpackaltura;   
+    }
+    }else{
+    *y = 450 - jetpackaltura;
+    }
 }
-//----------------------------------------------------------------------------------
-// Main entry point
-//----------------------------------------------------------------------------------
+
 int main()
 {
-    // Initialization
-    //--------------------------------------------------------------------------------------
-    const int screenWidth = 800;
-    const int screenHeight = 450;
 
-    InitWindow(screenWidth, screenHeight, "raylib");
-    
-    camera.position = (Vector3){ 10.0f, 10.0f, 8.0f };
-    camera.target = (Vector3){ 0.0f, 0.0f, 0.0f };
-    camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };
-    camera.fovy = 60.0f;
-    camera.projection = CAMERA_PERSPECTIVE;
+    InitWindow(800, 450, "Jetpack Sadride");
 
     Personagem_t jetpack;
-    jetpack.x = 200;
-    jetpack.y = 600;
-    jetpack.velocidade = 10;
+    jetpack.x = 400;
+    jetpack.y = 225;
+    jetpack.velocidade = 0;
     jetpack.largura = 30;
     jetpack.altura = 50;
-    //--------------------------------------------------------------------------------------
 
-#if defined(PLATFORM_WEB)
-    emscripten_set_main_loop(UpdateDrawFrame, 60, 1);
-#else
-    SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
-    //--------------------------------------------------------------------------------------
+    SetTargetFPS(60); // fps do jogo
 
     // Main game loop
-    while (!WindowShouldClose())    // Detect window close button or ESC key
-    {
-        UpdateDrawFrame();
+    while (!WindowShouldClose()){
+
         BeginDrawing();
-        DrawRectangle(jetpack.x, jetpack.y, jetpack.largura, jetpack.altura, BLACK);
         ClearBackground(RAYWHITE);
-
-        Movimento (&jetpack.y, &jetpack.velocidade);
-
+        
+        Movimento (&jetpack.y, &jetpack.velocidade, jetpack.altura);
+        
+        DrawRectangle(jetpack.x, jetpack.y, jetpack.largura, jetpack.altura, BLACK);
+        
         EndDrawing();
     }
-#endif
 
-    // De-Initialization
-    //--------------------------------------------------------------------------------------
-    CloseWindow();                  // Close window and OpenGL context
-    //--------------------------------------------------------------------------------------
-
+    CloseWindow();
     return 0;
-}
-
-// Update and draw game frame
-static void UpdateDrawFrame(void)
-{
-    // Update
-    //----------------------------------------------------------------------------------
-    UpdateCamera(&camera, CAMERA_ORBITAL);
-    //----------------------------------------------------------------------------------
-
-    // Draw
-    //----------------------------------------------------------------------------------
-    BeginDrawing();
-
-        ClearBackground(RAYWHITE);
-
-        BeginMode3D(camera);
-
-            DrawCube(cubePosition, 2.0f, 2.0f, 2.0f, RED);
-            DrawCubeWires(cubePosition, 2.0f, 2.0f, 2.0f, MAROON);
-            DrawGrid(10, 1.0f);
-
-        EndMode3D();
-
-        DrawText("This is a raylib example", 10, 40, 20, DARKGRAY);
-
-        DrawFPS(10, 10);
-
-    EndDrawing();
-    //----------------------------------------------------------------------------------
 }
