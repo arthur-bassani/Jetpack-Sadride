@@ -1,41 +1,52 @@
-
 #include "raylib.h"
+//tamanho constante da janela
+#define JANELA_Y 450
+#define JANELA_X 800
 
-typedef struct  {
+typedef struct{
     int x, y;
     float velocidade;
     int largura, altura;
-}Personagem_t;
+}personagem_t;
 
-void Movimento (int *y, float *velocidade, int jetpackaltura) {
-    
-    if(*y < 450){
-    float aceleracao = 0.5;
+void movimento(int *y, float *velocidade, int jetpackaltura) {
+    const float gravidade = 0.5f; //valores de gravidade e impulso livres para mudanca
+    const float impulso = -5.0f;
+
+    // veloc afetada por impulso caso ESPACO
     if (IsKeyDown(KEY_SPACE)) {
-        *velocidade = -5;
-    }else {
-        *velocidade += aceleracao;
+        *velocidade = impulso;
+    } else {
+        *velocidade += gravidade; // se nao, veloc afetada por gravidade
     }
-    if(*y += *velocidade <= 450 - jetpackaltura){
-        *y += *velocidade;
-    }else{
-        *y = 450 - jetpackaltura;   
+
+    //atualiza a posicao (precisa ser int)
+    *y += (int)*velocidade;
+
+    // previne que suba da janela
+    if (*y < 0) {
+        *y = 0;
+        *velocidade = 0; // para o movimento
     }
-    }else{
-    *y = 450 - jetpackaltura;
+
+    // previne que caia da janela
+    int groundLevel = JANELA_Y - jetpackaltura;
+    if (*y > groundLevel) {
+        *y = groundLevel;
+        *velocidade = 0; // para o movimento
     }
 }
 
-int main()
-{
+int main(){
 
-    InitWindow(800, 450, "Jetpack Sadride");
+    InitWindow(JANELA_X, JANELA_Y, "Jetpack Sadride");
 
-    Personagem_t jetpack;
-    jetpack.x = 400;
-    jetpack.y = 225;
+    personagem_t jetpack;
+    jetpack.x = JANELA_X/6;
+    jetpack.y = JANELA_Y;
     jetpack.velocidade = 0;
-    jetpack.largura = 30;
+    //interessante deixar tamanho do jetpack como variavel caso tenhamos um powerup
+    jetpack.largura = 30; 
     jetpack.altura = 50;
 
     SetTargetFPS(60); // fps do jogo
@@ -46,7 +57,7 @@ int main()
         BeginDrawing();
         ClearBackground(RAYWHITE);
         
-        Movimento (&jetpack.y, &jetpack.velocidade, jetpack.altura);
+        movimento(&jetpack.y, &jetpack.velocidade, jetpack.altura);
         
         DrawRectangle(jetpack.x, jetpack.y, jetpack.largura, jetpack.altura, BLACK);
         
