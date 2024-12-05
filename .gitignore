@@ -81,3 +81,4 @@ dkms.conf
 Makefile
 Makefile.Android
 main.code-workspace
+*.vscode
