@@ -1,37 +1,84 @@
 #include "raylib.h"
 //#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 
-#define FPS 20 // 60
+#define FPS 60
+#define RAND_SEED 0 // ?
+#define DT_INICIAL .125 // ?
 
 // tamanho do mapa, da tela e dos "quadradinhos"
 #define TAM_TILE 60
-#define LINHAS_MAPA 12
-#define COLUNAS_MAPA 240
-#define LINHAS_TELA 12
-#define COLUNAS_TELA 30
+#define LINHAS_MAPA 12 // base
+#define COLUNAS_MAPA 240 // base
+#define LINHAS_SECAO 12 // uma secao tem as mesmas dimensoes que a tela (ao menos agora)
+#define COLUNAS_SECAO 30
 
 // caracteres do mapa
 #define PAREDE 'X'
 #define MOEDA 'C'
 #define ESPINHO 'Z'
-#define ESPACO ' ' // nao sei se precisa
+#define ESPACO ' '
+#define JOGADOR 'J' // nao sei ainda como sera representado
 
 // struct para matriz tela e mapa? daria para buscar o tamanho mais facilmente...
+/*typedef struct {
+    char conteudo[LIN][COL];
+    unsigned int linhas;
+    unsigned int colunas;
+} tela_t;*/
 
 // passa os elementos do mapa para a tela, a partir da coluna de mapa especificada
-void mapear_tela(char *tela, char *mapa, unsigned int inicio_mapa) { // inicio_tela?
+// ainda nao concatena corretamente duas secoes do mapa
+void mapear_secao(char *secao, char *mapa_base, unsigned int inicio_mapa) { // inicio_secao? para concatenar?
     // evitar constantes aqui?
+
+    // secao_atual e proxima_secao?
+
     int i, j;
 
-    for (i = 0; i < LINHAS_TELA; i++) { // lim i como param?
-        for (j = 0; j < COLUNAS_TELA; j++) { // lim j como param?
-            *(tela + i * COLUNAS_TELA + j) = *(mapa + i * COLUNAS_MAPA + j + inicio_mapa);
+    for (i = 0; i < LINHAS_SECAO; i++) {
+        for (j = 0; j < COLUNAS_SECAO; j++) {
+            *(secao + i * COLUNAS_SECAO + j) = *(mapa_base + i * COLUNAS_MAPA + j + inicio_mapa);
         }
     }
 }
 
+Color cor_do_tile_na_tela(char tile) {
+    Color cor;
+
+    switch(tile) {
+    case PAREDE:
+        cor = BLACK;
+        break;
+    case MOEDA:
+        cor = BLUE;
+        break;
+    case ESPINHO:
+        cor = RED;
+        break;
+    case ESPACO:
+        cor = LIGHTGRAY;
+        break;
+    case JOGADOR:
+        cor = GREEN;
+        break;
+    default: // ?
+        cor = MAGENTA; // so para indicar que algo deu errado
+        break;
+    }
+
+    return cor;
+}
+
+int pegar_particao_aleatoria_do_mapa() { // ?
+    // 0, 30, 60, 90, 120, 150, 180, 210.
+    // 8 valores (COL_MAPA / COL_SECAO, considerando % == 0)
+    return rand() % (COLUNAS_MAPA / COLUNAS_SECAO) * COLUNAS_SECAO;
+}
+
 int main() {
-    char mapa[LINHAS_MAPA][COLUNAS_MAPA] = {
+    char mapa_base[LINHAS_MAPA][COLUNAS_MAPA] = {
 	    {'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'},
 	    {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'Z', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'Z', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
 	    {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'C', 'C', 'C', 'C', 'C', 'C', 'C', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'Z', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'Z', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'Z', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'C', 'C', 'C', ' ', ' ', ' ', ' ', 'C', 'C', 'C', ' ', ' ', ' ', ' '},
@@ -45,62 +92,57 @@ int main() {
 	    {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'Z', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'Z', ' ', ' ', ' ', ' ', ' ', 'C', 'C', 'C', 'C', 'C', 'C', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'C', ' ', ' ', ' ', 'Z', ' ', ' ', ' ', ' ', ' ', 'Z', ' ', ' ', ' ', 'C', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'Z', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'C', 'C', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
 	    {'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'}
     }; // absolutamente temporario, depois vai vir de um arquivo
-    char tela[LINHAS_TELA][COLUNAS_TELA] = {0};
-    int i, j, k;
 
-    InitWindow(COLUNAS_TELA * TAM_TILE, LINHAS_TELA * TAM_TILE, "Jetpack Sadride");
+    char tela[LINHAS_SECAO][COLUNAS_SECAO] = {0};
+    //tela_t tela = {{0}, LINHAS_SECAO, LINHAS_MAPA};
+    // secao?
+    // mapa?
+    
+    int i, j, k; // precisa do k?
+    double dt = DT_INICIAL; // em segundos
+    int distancia_percorrida; // aqui mesmo? unsigned?
+
+    srand(RAND_SEED);
+
+    InitWindow(COLUNAS_SECAO * TAM_TILE, LINHAS_SECAO * TAM_TILE, "Jetpack Sadride");
     SetTargetFPS(FPS);
-
-    mapear_tela(&tela[0][0], &mapa[0][0], 0);
 
     // loop principal
     k = 0;
+    distancia_percorrida = 0;
     while (!WindowShouldClose()) {
         BeginDrawing();
         ClearBackground(RAYWHITE);
 
-        // move a tela
+        // move a tela // mudar
         // adicionar alguma forma de temporizador
-        if (!IsKeyDown(KEY_SPACE)) { // so para controle de testes // bool runnnig? pode ser util
-            mapear_tela(&tela[0][0], &mapa[0][0], k);
+        if (!IsKeyDown(KEY_P)) { // so para controle de testes // bool runnnig? pode ser util
+            mapear_secao(&tela[0][0], &mapa_base[0][0], k);
 
             k++;
+            distancia_percorrida++;
 
-            // para fazer o mapa repetir, mas nao funciona bem
-            // corta pro inicio, fazer "adicionar" ao final
+            // para fazer o mapa repetir, temp
             if (k >= COLUNAS_MAPA) {
                 k = 0;
             }
         }
 
-        // pinta a tela (fazer uma funcao depois) - e mais depois ainda vao ser imagens
-        for (i = 0; i < LINHAS_TELA; i++) {
-            for (j = 0; j < COLUNAS_TELA; j++) {
-                Color cor;
-
-                switch(tela[i][j]) { // funcaozinha?
-                case PAREDE:
-                    cor = BLACK;
-                    break;
-                case MOEDA:
-                    cor = BLUE;
-                    break;
-                case ESPINHO:
-                    cor = RED;
-                    break;
-                case ESPACO:
-                    cor = LIGHTGRAY;
-                    break;
-                default: // ?
-                    cor = MAGENTA; // so para indicar que algo deu errado
-                    break;
-                }
-
-                DrawRectangle(j * TAM_TILE, i * TAM_TILE, TAM_TILE, TAM_TILE, cor);
+        // pinta a tela, depois ainda vao ser imagens
+        for (i = 0; i < LINHAS_SECAO; i++) {
+            for (j = 0; j < COLUNAS_SECAO; j++) {
+                DrawRectangle(j * TAM_TILE, i * TAM_TILE, TAM_TILE, TAM_TILE, cor_do_tile_na_tela(tela[i][j]));
             }
         }
 
+        // mostra a distancia percorrida na tela, meio arcaico no momento
+        DrawText(TextFormat("Distancia percorrida: %08d", distancia_percorrida), 0, 0, 30, WHITE);
+
         EndDrawing();
+
+        // fazer uma funcao matematica daora para mudar dt (log??)
+
+        WaitTime(dt); // nao gostei...
     }
     
     CloseWindow();
