@@ -78,7 +78,6 @@ dkms.conf
 # End of https://www.toptal.com/developers/gitignore/api/visualstudiocode,c
 
 #arquivos que usamos para funcionar no vscode
-Makefile
 Makefile.Android
 main.code-workspace
 *.vscode
