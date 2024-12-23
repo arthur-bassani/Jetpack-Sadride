@@ -1,7 +1,5 @@
 #include "raylib.h"
-//tamanho constante da janela
-#define JANELA_Y 450
-#define JANELA_X 800
+#include "sadride.h"
 
 typedef struct{
     int x, y;
