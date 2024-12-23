@@ -1,6 +1,6 @@
 #include "raylib.h"
-#include "sadride.h"
 
+/*
 int main(){ //funcao main para testar menu.c | apagar depois!
     EstadoJogo estado = tela_inicial();
 
@@ -17,7 +17,7 @@ int main(){ //funcao main para testar menu.c | apagar depois!
     }
 
     return 0;
-}
+} */
 
 EstadoJogo tela_inicial(){
     InitWindow(JANELA_X, JANELA_Y, "Jetpack Sadride");
