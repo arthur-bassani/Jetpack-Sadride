@@ -1,89 +1,68 @@
 #include "raylib.h"
-#include <stdio.h>
+//#include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 
-#define FPS 60 // precisa?
-#define RAND_SEED time(0)
+#define FPS 60
+#define RAND_SEED 0 // ?
+#define DT_INICIAL .125 // ?
 
 // tamanho do mapa, da tela e dos "quadradinhos"
-#define TAM_TILE 40 // ?
-#define LINHAS_MAPA 12
-#define COLUNAS_MAPA 240
-#define LINHAS_SECAO 12
+#define TAM_TILE 60
+#define LINHAS_MAPA 12 // base
+#define COLUNAS_MAPA 240 // base
+#define LINHAS_SECAO 12 // uma secao tem as mesmas dimensoes que a tela (ao menos agora)
 #define COLUNAS_SECAO 30
 
 // caracteres do mapa
-#define CHAR_PAREDE 'X'
-#define CHAR_MOEDA 'C'
-#define CHAR_ESPINHO 'Z'
-#define CHAR_ESPACO ' '
-//#define CHAR_JOGADOR 'J' // nao sei ainda como sera representado
+#define PAREDE 'X'
+#define MOEDA 'C'
+#define ESPINHO 'Z'
+#define ESPACO ' '
+#define JOGADOR 'J' // nao sei ainda como sera representado
 
-#define VELOCIDADE_MAPA 10 // constante por enquanto
+// struct para matriz tela e mapa? daria para buscar o tamanho mais facilmente...
+/*typedef struct {
+    char conteudo[LIN][COL];
+    unsigned int linhas;
+    unsigned int colunas;
+} tela_t;*/
 
-#define MAX_OBJ 2 * LINHAS_SECAO * COLUNAS_SECAO // 2 por conta das duas secoes
+// passa os elementos do mapa para a tela, a partir da coluna de mapa especificada
+// ainda nao concatena corretamente duas secoes do mapa
+void mapear_secao(char *secao, char *mapa_base, unsigned int inicio_mapa) { // inicio_secao? para concatenar?
+    // evitar constantes aqui?
 
-typedef struct {
-    char conteudo[LINHAS_SECAO][COLUNAS_SECAO];
-    int x; // ?
-} secao_t;
+    // secao_atual e proxima_secao?
 
-typedef struct {
-    int x;
-    int y;
-} posicao_t;
-
-typedef struct {
-    int tipo; // enum?
-    posicao_t pos;
-} objeto_t;
-
-// Pega o mapa de um arquivo de texto
-// ...
-
-// Gera um valor aleatorio para ser usado como inicio da secao na funcao gerar_secao
-int inicio_secao_aleatorio() {
-    // 0, 30, 60, 90, 120, 150, 180, 210.
-    // assumindo que o mapa possui o tamanho certo...
-
-    // fazer algo mais sofisticado, numeros do intervalo que nao podem ser gerados...
-    return rand() % (COLUNAS_MAPA / COLUNAS_SECAO) * COLUNAS_SECAO;
-}
-
-// Pega uma secao do mapa a partir de um indice
-void gerar_secao(char secao[LINHAS_SECAO][COLUNAS_SECAO], char mapa[LINHAS_MAPA][COLUNAS_MAPA], int inicio_secao) {
-    // assumindo que inicio_secao eh valido...
     int i, j;
 
     for (i = 0; i < LINHAS_SECAO; i++) {
         for (j = 0; j < COLUNAS_SECAO; j++) {
-            secao[i][j] = mapa[i][inicio_secao + j];
+            *(secao + i * COLUNAS_SECAO + j) = *(mapa_base + i * COLUNAS_MAPA + j + inicio_mapa);
         }
     }
-
-    // return inicio_secao;
 }
 
-Color cor_tile(char tile) { // temp?
+Color cor_do_tile_na_tela(char tile) {
     Color cor;
 
     switch(tile) {
-    case CHAR_PAREDE:
+    case PAREDE:
         cor = BLACK;
         break;
-    case CHAR_MOEDA:
-        cor = GOLD;
+    case MOEDA:
+        cor = BLUE;
         break;
-    case CHAR_ESPINHO:
-        cor = BROWN;
+    case ESPINHO:
+        cor = RED;
         break;
-    case CHAR_ESPACO:
+    case ESPACO:
         cor = LIGHTGRAY;
         break;
-    /*case CHAR_JOGADOR:
+    case JOGADOR:
         cor = GREEN;
-        break;*/
+        break;
     default: // ?
         cor = MAGENTA; // so para indicar que algo deu errado
         break;
@@ -92,8 +71,14 @@ Color cor_tile(char tile) { // temp?
     return cor;
 }
 
-int main() { // por enquanto so, eu acho
-    char mapa[LINHAS_MAPA][COLUNAS_MAPA] = {
+int pegar_particao_aleatoria_do_mapa() { // ?
+    // 0, 30, 60, 90, 120, 150, 180, 210.
+    // 8 valores (COL_MAPA / COL_SECAO, considerando % == 0)
+    return rand() % (COLUNAS_MAPA / COLUNAS_SECAO) * COLUNAS_SECAO;
+}
+
+int main() {
+    char mapa_base[LINHAS_MAPA][COLUNAS_MAPA] = {
 	    {'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'},
 	    {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'Z', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'Z', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
 	    {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'C', 'C', 'C', 'C', 'C', 'C', 'C', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'Z', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'Z', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'Z', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'C', 'C', 'C', ' ', ' ', ' ', ' ', 'C', 'C', 'C', ' ', ' ', ' ', ' '},
@@ -107,44 +92,59 @@ int main() { // por enquanto so, eu acho
 	    {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'Z', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'Z', ' ', ' ', ' ', ' ', ' ', 'C', 'C', 'C', 'C', 'C', 'C', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'C', ' ', ' ', ' ', 'Z', ' ', ' ', ' ', ' ', ' ', 'Z', ' ', ' ', ' ', 'C', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'Z', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'C', 'C', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
 	    {'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'}
     }; // absolutamente temporario, depois vai vir de um arquivo
-    secao_t atual = {0};
-    secao_t proxima = {0};
 
-    objeto_t objetos[MAX_OBJ] = {0}; // Rectangle [] ??
-
-    int i, j;
+    char tela[LINHAS_SECAO][COLUNAS_SECAO] = {0};
+    //tela_t tela = {{0}, LINHAS_SECAO, LINHAS_MAPA};
+    // secao?
+    // mapa?
+    
+    int i, j, k; // precisa do k?
+    double dt = DT_INICIAL; // em segundos
+    int distancia_percorrida; // aqui mesmo? unsigned?
 
     srand(RAND_SEED);
-
-    gerar_secao(atual.conteudo, mapa, 0);
-    gerar_secao(proxima.conteudo, mapa, inicio_secao_aleatorio());
 
     InitWindow(COLUNAS_SECAO * TAM_TILE, LINHAS_SECAO * TAM_TILE, "Jetpack Sadride");
     SetTargetFPS(FPS);
 
+    // loop principal
+    k = 0;
+    distancia_percorrida = 0;
     while (!WindowShouldClose()) {
         BeginDrawing();
         ClearBackground(RAYWHITE);
 
-        // desenha a primeira secao // ???
-        for (i = 0; i < LINHAS_SECAO; i++) {
-            for (j = 0; j < COLUNAS_SECAO; j++) {
-                DrawRectangle(j * TAM_TILE, i * TAM_TILE, COLUNAS_SECAO * TAM_TILE, LINHAS_SECAO * TAM_TILE, cor_tile(atual.conteudo[i][j]));
+        // move a tela // mudar
+        // adicionar alguma forma de temporizador
+        if (!IsKeyDown(KEY_P)) { // so para controle de testes // bool runnnig? pode ser util
+            mapear_secao(&tela[0][0], &mapa_base[0][0], k);
+
+            k++;
+            distancia_percorrida++;
+
+            // para fazer o mapa repetir, temp
+            if (k >= COLUNAS_MAPA) {
+                k = 0;
             }
         }
 
-        // mover as secoes
-        // ...
-        // funcao_velocidade? log...
-        // nao desenhar coisas fora da tela
+        // pinta a tela, depois ainda vao ser imagens
+        for (i = 0; i < LINHAS_SECAO; i++) {
+            for (j = 0; j < COLUNAS_SECAO; j++) {
+                DrawRectangle(j * TAM_TILE, i * TAM_TILE, TAM_TILE, TAM_TILE, cor_do_tile_na_tela(tela[i][j]));
+            }
+        }
+
+        // mostra a distancia percorrida na tela, meio arcaico no momento
+        DrawText(TextFormat("Distancia percorrida: %08d", distancia_percorrida), 0, 0, 30, WHITE);
 
         EndDrawing();
 
-        // if...
-        //inicio_secao_atual = inicio_proxima_secao;
-        //inicio_proxima_secao = inicio_secao_aleatorio();
-    }
+        // fazer uma funcao matematica daora para mudar dt (log??)
 
+        WaitTime(dt); // nao gostei...
+    }
+    
     CloseWindow();
 
     return 0;
