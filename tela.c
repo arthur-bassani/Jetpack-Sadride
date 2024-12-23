@@ -6,34 +6,25 @@
 #define FPS 60 // precisa?
 #define RAND_SEED 0 //time(0)
 
-// tamanho do mapa, da tela e dos "quadradinhos"
 #define TAM_TILE 40 // ?
 #define LINHAS_MAPA 12
 #define COLUNAS_MAPA 240
 #define LINHAS_SECAO 12
 #define COLUNAS_SECAO 30
 
-// caracteres do mapa
 #define CHAR_PAREDE 'X'
 #define CHAR_MOEDA 'C'
 #define CHAR_ESPINHO 'Z'
 #define CHAR_ESPACO ' '
-//#define CHAR_JOGADOR 'J' // nao sei ainda como sera representado
 
 #define VELOCIDADE_INICIAL_MAPA 8
 
 #define MAX_ITENS LINHAS_SECAO*COLUNAS_SECAO
 
 typedef struct {
-    char tipo; // enum?
+    char tipo;
     Rectangle ret;
 } item_t;
-
-/*typedef struct {
-    char conteudo[LINHAS_SECAO][COLUNAS_SECAO]; // talvez nem precise...
-    item_t itens[MAX_ITENS];
-    int x; // vai precisar?
-} secao_t;*/ // nao parece precisar...
 
 Color cor_tile(char tile) { // temp?
     Color cor;
@@ -73,42 +64,6 @@ int inicio_secao_aleatorio() {
     // fazer algo mais sofisticado, numeros do intervalo que nao podem ser gerados...
     return rand() % (COLUNAS_MAPA / COLUNAS_SECAO) * COLUNAS_SECAO;
 }
-
-// Pega uma secao do mapa a partir de um indice
-/*void mapear_conteudo_secao(secao_t *secao, char mapa[LINHAS_MAPA][COLUNAS_MAPA], int inicio_secao) {
-    // assumindo que inicio_secao eh valido...
-    int i, j;
-
-    for (i = 0; i < LINHAS_SECAO; i++) {
-        for (j = 0; j < COLUNAS_SECAO; j++) {
-            secao->conteudo[i][j] = mapa[i][inicio_secao + j];
-        }
-    }
-
-    // return inicio_secao; // pode ser util?
-}*/
-
-// Lista os objetos de uma secao
-/*void salvar_itens(secao_t *secao) {
-    int i, j;
-    int k = 0;
-    
-    for (i = 0; i < LINHAS_SECAO; i++) {
-        for (j = 0; j < COLUNAS_SECAO; j++) {
-            char c = secao->conteudo[i][j];
-
-            if (c == CHAR_PAREDE || c == CHAR_MOEDA || c == CHAR_ESPINHO) { // caracteres diferentes serao considerados espaco vazio
-                secao->itens[k].tipo = c;
-                secao->itens[k].ret.x = j * TAM_TILE;
-                secao->itens[k].ret.y = i * TAM_TILE;
-                secao->itens[k].ret.width = TAM_TILE;
-                secao->itens[k].ret.height = TAM_TILE;
-                
-                k++;
-            }
-        }
-    }
-}*/
 
 // Gera completamente uma secao, com o conteudo e os itens
 // Necessariamente cada secao deve possuir um elemento no "(0, 0)"
@@ -165,18 +120,15 @@ int main() {
     
     item_t atual[MAX_ITENS] = {0};
     item_t proxima[MAX_ITENS] = {0};
-    // talvez precise de 3...
+    // talvez os espacos das secoes sejam por conta de serem soh duas secoes e a troca ocorrer bem quando uma acaba, nao dando tempo
+    // talvez precise usar 3 secoes mesmo...
 
     int i;
     float velocidade_mapa = VELOCIDADE_INICIAL_MAPA; // funcao_velocidade? log...
 
     srand(RAND_SEED);
 
-    //mapear_conteudo_secao(&atual, mapa, 0);
-    //salvar_itens(&atual);
     gerar_secao(atual, mapa, 0, 0);
-
-    //mapear_conteudo_secao(&proxima, mapa, inicio_secao_aleatorio());
     gerar_secao(proxima, mapa, inicio_secao_aleatorio(), COLUNAS_SECAO);
 
     InitWindow(COLUNAS_SECAO * TAM_TILE, LINHAS_SECAO * TAM_TILE, "Jetpack Sadride");
@@ -205,7 +157,7 @@ int main() {
             // remover item se ele saiu da tela
             if (atual[0].ret.x + COLUNAS_SECAO * TAM_TILE < 0) { // condicao meio dificil de ler...
                 // problema: as vezes copia todo estranho, parecendo corrompido (aparentemente se resolveu??)
-                copiar_itens(atual, proxima); // aqui o erro, aparentemente
+                copiar_itens(atual, proxima); // se deu erro, deve ser aqui
                 gerar_secao(proxima, mapa, inicio_secao_aleatorio(), COLUNAS_SECAO);
             }
         }
