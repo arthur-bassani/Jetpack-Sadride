@@ -37,9 +37,13 @@ void movimento(int *y, float *velocidade, int jetpackaltura) {
 }
 
 int main(){
+
     EstadoJogo estado = tela_inicial();
-    if (estado == JOGO) {
+    bool isPaused = false;      // variavel de controle para pausa
+
+    if (estado == JOGO) {  // verificar se o jogo deve ser rodado
         InitWindow(JANELA_X, JANELA_Y, "Jetpack Sadride");
+        SetExitKey(0); // O ESC nao fecha mais a janela
 
         personagem_t jetpack;
         jetpack.x = JANELA_X/6;
@@ -54,12 +58,26 @@ int main(){
         // Main game loop
         while (!WindowShouldClose()){
 
+            if(IsKeyPressed(KEY_ESCAPE)) {  // mudar facilmente o estado de pausa
+                isPaused = !isPaused;
+            }
+
             BeginDrawing();
             ClearBackground(RAYWHITE);
 
-            movimento(&jetpack.y, &jetpack.velocidade, jetpack.altura);
+            if (!isPaused) { // quando está rodando
+                movimento(&jetpack.y, &jetpack.velocidade, jetpack.altura);
+                //DrawRectangle(jetpack.x, jetpack.y, jetpack.largura, jetpack.altura, BLACK);
+                // Se quiserem podemos fazer o retangulo sumir ao apertar ESC
+            }
 
-            DrawRectangle(jetpack.x, jetpack.y, jetpack.largura, jetpack.altura, BLACK);
+            // jogo pausado
+            if (isPaused) {  // Measure Text pra ficar centralizado bem bunitinhu
+                DrawText("Jogo Pausado", JANELA_X/2 - MeasureText("Jogo Pausado", 30)/2, JANELA_Y/2 - 20, 30, WHITE);
+                DrawText("Pressione ESC para continuar", JANELA_X/2 - MeasureText("Pressione ESC para continuar", 20)/2, JANELA_Y/2 + 20, 20, GRAY);
+            }
+
+            DrawRectangle(jetpack.x, jetpack.y, jetpack.largura, jetpack.altura, BLACK); // Ao apertar ESC nao vai sumir o personagem
 
             EndDrawing();
         }
