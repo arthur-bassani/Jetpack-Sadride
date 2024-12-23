@@ -1,5 +1,6 @@
 #include "raylib.h"
 #include "sadride.h"
+#include "menu.c"
 
 typedef struct{
     int x, y;
@@ -36,32 +37,33 @@ void movimento(int *y, float *velocidade, int jetpackaltura) {
 }
 
 int main(){
+    EstadoJogo estado = tela_inicial();
+    if (estado == JOGO) {
+        InitWindow(JANELA_X, JANELA_Y, "Jetpack Sadride");
 
-    InitWindow(JANELA_X, JANELA_Y, "Jetpack Sadride");
+        personagem_t jetpack;
+        jetpack.x = JANELA_X/6;
+        jetpack.y = JANELA_Y;
+        jetpack.velocidade = 0;
+        //interessante deixar tamanho do jetpack como variavel caso tenhamos um powerup
+        jetpack.largura = 30;
+        jetpack.altura = 50;
 
-    personagem_t jetpack;
-    jetpack.x = JANELA_X/6;
-    jetpack.y = JANELA_Y;
-    jetpack.velocidade = 0;
-    //interessante deixar tamanho do jetpack como variavel caso tenhamos um powerup
-    jetpack.largura = 30; 
-    jetpack.altura = 50;
+        SetTargetFPS(60); // fps do jogo
 
-    SetTargetFPS(60); // fps do jogo
+        // Main game loop
+        while (!WindowShouldClose()){
 
-    // Main game loop
-    while (!WindowShouldClose()){
+            BeginDrawing();
+            ClearBackground(RAYWHITE);
 
-        BeginDrawing();
-        ClearBackground(RAYWHITE);
-        
-        movimento(&jetpack.y, &jetpack.velocidade, jetpack.altura);
-        
-        DrawRectangle(jetpack.x, jetpack.y, jetpack.largura, jetpack.altura, BLACK);
-        
-        EndDrawing();
+            movimento(&jetpack.y, &jetpack.velocidade, jetpack.altura);
+
+            DrawRectangle(jetpack.x, jetpack.y, jetpack.largura, jetpack.altura, BLACK);
+
+            EndDrawing();
+        }
     }
-
     CloseWindow();
     return 0;
 }
