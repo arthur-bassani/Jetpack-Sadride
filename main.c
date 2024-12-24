@@ -1,6 +1,5 @@
 #include "raylib.h"
 #include "sadride.h"
-#include "menu.c"
 
 typedef struct{
     int x, y;
