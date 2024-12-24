@@ -26,7 +26,7 @@ typedef struct {
     Rectangle ret;
 } item_t;
 
-Color cor_tile(char tile) { // temp?
+Color cor_tile(char tile) {
     Color cor;
 
     switch(tile) {
@@ -42,9 +42,6 @@ Color cor_tile(char tile) { // temp?
     case CHAR_ESPACO:
         cor = LIGHTGRAY;
         break;
-    /*case CHAR_JOGADOR:
-        cor = GREEN;
-        break;*/
     default: // ?
         cor = MAGENTA; // so para indicar que algo deu errado
         break;
@@ -53,7 +50,7 @@ Color cor_tile(char tile) { // temp?
     return cor;
 }
 
-// Pega o mapa de um arquivo de texto
+// Pega o mapa de um arquivo de texto (compensa fazer em outro arquivo...)
 // ... (validar mapa...)
 
 // Gera um valor aleatorio para ser usado como inicio da secao
@@ -67,6 +64,7 @@ int inicio_secao_aleatorio() {
 
 // Gera completamente uma secao, com o conteudo e os itens
 // Necessariamente cada secao deve possuir um elemento no "(0, 0)"
+// melhor usar ponteiros para nao copiar structs (consome tempo)
 void gerar_secao(item_t itens[MAX_ITENS], char mapa[LINHAS_MAPA][COLUNAS_MAPA], int j_inicial_mapa, int j_offset_tela) {
     // assumindo que inicio_secao eh valido...
     
@@ -92,7 +90,9 @@ void gerar_secao(item_t itens[MAX_ITENS], char mapa[LINHAS_MAPA][COLUNAS_MAPA], 
     return;
 }
 
-/*void copiar_itens(item_t destino[], item_t *origem) { // ver uma funcao propria do c para usar...
+// Copia os itens de um vetor para o outro (ruim)
+// melhor usar ponteiros para nao copiar structs (consome tempo)
+void copiar_itens(item_t destino[], item_t origem[]) { // ver uma funcao propria do c para usar... // usar ponteiros? copiar structs eh ruim... 
     int i;
 
     // limpar destino?
@@ -100,7 +100,16 @@ void gerar_secao(item_t itens[MAX_ITENS], char mapa[LINHAS_MAPA][COLUNAS_MAPA], 
     for (i = 0; i < MAX_ITENS; i++) {
         destino[i] = origem[i];
     }
-}*/
+}
+
+// Desenha um item, se ele estiver na tela
+// melhor usar ponteiros para nao copiar structs (consome tempo)
+void desenhar_item(item_t *item) {
+    if (item->ret.x + item->ret.width > 0) {
+        DrawRectangleRec(item->ret, cor_tile(item->tipo));
+        DrawRectangleLines(item->ret.x, item->ret.y, TAM_TILE, TAM_TILE, GRAY); // para ver
+    }
+}
 
 int main() {
     char mapa[LINHAS_MAPA][COLUNAS_MAPA] = {
@@ -120,9 +129,6 @@ int main() {
     
     item_t atual[MAX_ITENS] = {0};
     item_t proxima[MAX_ITENS] = {0};
-    // talvez os espacos das secoes sejam por conta de serem soh duas secoes e a troca ocorrer bem quando uma acaba, nao dando tempo
-    // talvez precise usar 3 secoes mesmo...
-    //item_t secao3[MAX_ITENS] = {0}; // testei e deu o mesmo problema
 
     int i;
     float velocidade_mapa = VELOCIDADE_INICIAL_MAPA; // funcao_velocidade? log...
@@ -142,14 +148,14 @@ int main() {
         // desenhar itens
         for (i = 0; i < MAX_ITENS; i++) {
             // problema: ficam espacos entre as secoes... nao sei porque ainda
+            // o primeiro elemento da secao aparece com largura reduzida, por algum motivo
 
-            DrawRectangleRec(atual[i].ret, cor_tile(atual[i].tipo));
-            DrawRectangleLines(atual[i].ret.x, atual[i].ret.y, TAM_TILE, TAM_TILE, GRAY); // para ver
-            DrawRectangleLines(atual[0].ret.x, atual[0].ret.y, COLUNAS_SECAO * TAM_TILE, LINHAS_SECAO * TAM_TILE, RED);
-
-            DrawRectangleRec(proxima[i].ret, cor_tile(proxima[i].tipo));
-            DrawRectangleLines(proxima[i].ret.x, proxima[i].ret.y, TAM_TILE, TAM_TILE, GRAY); // para ver
+            desenhar_item(&atual[i]);
+            desenhar_item(&proxima[i]);
         }
+
+        // temp, soh para ver as secoes
+        DrawRectangleLines(atual[0].ret.x, atual[0].ret.y, COLUNAS_SECAO * TAM_TILE, LINHAS_SECAO * TAM_TILE, RED);
 
         EndDrawing();
 
@@ -163,10 +169,14 @@ int main() {
             // fazer a troca se a secao atual sai da tela
             if (proxima[0].ret.x == 0) {
                 // problema: as vezes copia todo estranho, parecendo corrompido (aparentemente se resolveu??)
-                trocar_secoes(atual, proxima, mapa);
-                //gerar_secao(proxima, mapa, inicio_secao_aleatorio(), COLUNAS_SECAO);
+                
+                copiar_itens(atual, proxima);
+                gerar_secao(proxima, mapa, inicio_secao_aleatorio(), COLUNAS_SECAO);
             }
         }
+
+        // atualizar velocidade...
+        // a partir de uma velocidade, o mapa simplesmente para de gerar...
     }
 
     CloseWindow();
