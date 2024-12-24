@@ -67,7 +67,7 @@ int inicio_secao_aleatorio() {
 
 // Gera completamente uma secao, com o conteudo e os itens
 // Necessariamente cada secao deve possuir um elemento no "(0, 0)"
-void gerar_secao(item_t itens[MAX_ITENS], char mapa[LINHAS_MAPA][COLUNAS_MAPA], int inicio_secao, int j_offset) {
+void gerar_secao(item_t itens[MAX_ITENS], char mapa[LINHAS_MAPA][COLUNAS_MAPA], int j_inicial_mapa, int j_offset_tela) {
     // assumindo que inicio_secao eh valido...
     
     int i, j;
@@ -75,11 +75,11 @@ void gerar_secao(item_t itens[MAX_ITENS], char mapa[LINHAS_MAPA][COLUNAS_MAPA], 
 
     for (i = 0; i < LINHAS_SECAO; i++) {
         for (j = 0; j < COLUNAS_SECAO; j++) {
-            char c = mapa[i][inicio_secao + j];
+            char c = mapa[i][j_inicial_mapa + j];
 
             if (c == CHAR_PAREDE || c == CHAR_MOEDA || c == CHAR_ESPINHO) { // caracteres diferentes serao considerados espaco vazio
                 itens[item].tipo = c;
-                itens[item].ret.x = (j + j_offset) * TAM_TILE; // so faz sentido pro atual? talvez seja melhor guardar soh o j...
+                itens[item].ret.x = (j + j_offset_tela) * TAM_TILE; // so faz sentido pro atual? talvez seja melhor guardar soh o j...
                 itens[item].ret.y = i * TAM_TILE; // =
                 itens[item].ret.width = TAM_TILE; // sempre vai ser o mesmo...
                 itens[item].ret.height = TAM_TILE; // =
@@ -92,7 +92,7 @@ void gerar_secao(item_t itens[MAX_ITENS], char mapa[LINHAS_MAPA][COLUNAS_MAPA], 
     return;
 }
 
-void copiar_itens(item_t destino[], item_t origem[]) { // ver uma funcao propria do c para usar...
+/*void copiar_itens(item_t destino[], item_t *origem) { // ver uma funcao propria do c para usar...
     int i;
 
     // limpar destino?
@@ -100,7 +100,7 @@ void copiar_itens(item_t destino[], item_t origem[]) { // ver uma funcao propria
     for (i = 0; i < MAX_ITENS; i++) {
         destino[i] = origem[i];
     }
-}
+}*/
 
 int main() {
     char mapa[LINHAS_MAPA][COLUNAS_MAPA] = {
@@ -122,6 +122,7 @@ int main() {
     item_t proxima[MAX_ITENS] = {0};
     // talvez os espacos das secoes sejam por conta de serem soh duas secoes e a troca ocorrer bem quando uma acaba, nao dando tempo
     // talvez precise usar 3 secoes mesmo...
+    //item_t secao3[MAX_ITENS] = {0}; // testei e deu o mesmo problema
 
     int i;
     float velocidade_mapa = VELOCIDADE_INICIAL_MAPA; // funcao_velocidade? log...
@@ -140,9 +141,14 @@ int main() {
         
         // desenhar itens
         for (i = 0; i < MAX_ITENS; i++) {
-            DrawRectangleRec(atual[i].ret, cor_tile(atual[i].tipo));
-            DrawRectangleRec(proxima[i].ret, cor_tile(proxima[i].tipo));
             // problema: ficam espacos entre as secoes... nao sei porque ainda
+
+            DrawRectangleRec(atual[i].ret, cor_tile(atual[i].tipo));
+            DrawRectangleLines(atual[i].ret.x, atual[i].ret.y, TAM_TILE, TAM_TILE, GRAY); // para ver
+            DrawRectangleLines(atual[0].ret.x, atual[0].ret.y, COLUNAS_SECAO * TAM_TILE, LINHAS_SECAO * TAM_TILE, RED);
+
+            DrawRectangleRec(proxima[i].ret, cor_tile(proxima[i].tipo));
+            DrawRectangleLines(proxima[i].ret.x, proxima[i].ret.y, TAM_TILE, TAM_TILE, GRAY); // para ver
         }
 
         EndDrawing();
@@ -154,11 +160,11 @@ int main() {
             atual[i].ret.x -= velocidade_mapa;
             proxima[i].ret.x -= velocidade_mapa;
 
-            // remover item se ele saiu da tela
-            if (atual[0].ret.x + COLUNAS_SECAO * TAM_TILE < 0) { // condicao meio dificil de ler...
+            // fazer a troca se a secao atual sai da tela
+            if (proxima[0].ret.x == 0) {
                 // problema: as vezes copia todo estranho, parecendo corrompido (aparentemente se resolveu??)
-                copiar_itens(atual, proxima); // se deu erro, deve ser aqui
-                gerar_secao(proxima, mapa, inicio_secao_aleatorio(), COLUNAS_SECAO);
+                trocar_secoes(atual, proxima, mapa);
+                //gerar_secao(proxima, mapa, inicio_secao_aleatorio(), COLUNAS_SECAO);
             }
         }
     }
