@@ -36,49 +36,55 @@ void movimento(int *y, float *velocidade, int jetpackaltura) {
 }
 
 int main(){
+    EstadoJogo estado = MENU;
+    while(estado != SAIR){
+        
+        bool isPaused = false;      // variavel de controle para pausa
+        if(estado == MENU) estado = tela_inicial();
+        if (estado == JOGO) {  // verificar se o jogo deve ser rodado
+            InitWindow(JANELA_X, JANELA_Y, "Jetpack Sadride");
+            SetExitKey(0); // O ESC nao fecha mais a janela
+            DisableCursor(); HideCursor();
 
-    EstadoJogo estado = tela_inicial();
-    bool isPaused = false;      // variavel de controle para pausa
+            personagem_t jetpack;
+            jetpack.x = JANELA_X/6;
+            jetpack.y = JANELA_Y;
+            jetpack.velocidade = 0;
+            //interessante deixar tamanho do jetpack como variavel caso tenhamos um powerup
+            jetpack.largura = 30;
+            jetpack.altura = 50;
 
-    if (estado == JOGO) {  // verificar se o jogo deve ser rodado
-        InitWindow(JANELA_X, JANELA_Y, "Jetpack Sadride");
-        SetExitKey(0); // O ESC nao fecha mais a janela
+            SetTargetFPS(60); // fps do jogo
 
-        personagem_t jetpack;
-        jetpack.x = JANELA_X/6;
-        jetpack.y = JANELA_Y;
-        jetpack.velocidade = 0;
-        //interessante deixar tamanho do jetpack como variavel caso tenhamos um powerup
-        jetpack.largura = 30;
-        jetpack.altura = 50;
+            // Main game loop
+            while (estado == JOGO && !WindowShouldClose()){
+                DrawFPS(10,10);
+                if(IsKeyPressed(KEY_ESCAPE)) {  // mudar facilmente o estado de pausa
+                    isPaused = !isPaused;
+                }
 
-        SetTargetFPS(60); // fps do jogo
+                BeginDrawing();
+                ClearBackground(RAYWHITE);
 
-        // Main game loop
-        while (!WindowShouldClose()){
+                if (!isPaused) { // quando está rodando
+                    movimento(&jetpack.y, &jetpack.velocidade, jetpack.altura);
+                    //DrawRectangle(jetpack.x, jetpack.y, jetpack.largura, jetpack.altura, BLACK);
+                }
 
-            if(IsKeyPressed(KEY_ESCAPE)) {  // mudar facilmente o estado de pausa
-                isPaused = !isPaused;
+                DrawRectangle(jetpack.x, jetpack.y, jetpack.largura, jetpack.altura, BLACK); // Ao apertar ESC nao vai sumir o personagem
+
+                // jogo pausado
+                if (isPaused) {  // Measure Text pra ficar centralizado bem bunitinhu
+                    DrawText("Jogo Pausado", JANELA_X/2 - MeasureText("Jogo Pausado", 30)/2, JANELA_Y/2 - 20, 30, WHITE);
+                    DrawText("Pressione ESC para continuar ou M para retornar ao menu",
+                        JANELA_X/2 - MeasureText("Pressione ESC para continuar ou M para retornar ao menu", 20)/2,
+                        JANELA_Y/2 + 20, 20, GRAY);
+                    if(IsKeyPressed(KEY_M)) {estado = MENU;}
+                }
+
+                EndDrawing();
             }
-
-            BeginDrawing();
-            ClearBackground(RAYWHITE);
-
-            if (!isPaused) { // quando está rodando
-                movimento(&jetpack.y, &jetpack.velocidade, jetpack.altura);
-                //DrawRectangle(jetpack.x, jetpack.y, jetpack.largura, jetpack.altura, BLACK);
-                // Se quiserem podemos fazer o retangulo sumir ao apertar ESC
-            }
-
-            // jogo pausado
-            if (isPaused) {  // Measure Text pra ficar centralizado bem bunitinhu
-                DrawText("Jogo Pausado", JANELA_X/2 - MeasureText("Jogo Pausado", 30)/2, JANELA_Y/2 - 20, 30, WHITE);
-                DrawText("Pressione ESC para continuar", JANELA_X/2 - MeasureText("Pressione ESC para continuar", 20)/2, JANELA_Y/2 + 20, 20, GRAY);
-            }
-
-            DrawRectangle(jetpack.x, jetpack.y, jetpack.largura, jetpack.altura, BLACK); // Ao apertar ESC nao vai sumir o personagem
-
-            EndDrawing();
+            CloseWindow();
         }
     }
     CloseWindow();
