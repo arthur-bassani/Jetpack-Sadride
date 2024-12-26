@@ -165,14 +165,14 @@ int main() {
         for (i = 0; i < MAX_ITENS; i++) {
             atual[i].ret.x -= velocidade_mapa;
             proxima[i].ret.x -= velocidade_mapa;
+        }
 
-            // fazer a troca se a secao atual sai da tela
-            if (proxima[0].ret.x == 0) {
-                // problema: as vezes copia todo estranho, parecendo corrompido (aparentemente se resolveu??)
-                
-                copiar_itens(atual, proxima);
-                gerar_secao(proxima, mapa, inicio_secao_aleatorio(), COLUNAS_SECAO);
-            }
+        // fazer a troca se a secao atual sai da tela
+        if (proxima[0].ret.x == 0) {
+            // problema: as vezes copia todo estranho, parecendo corrompido (aparentemente se resolveu??)
+            
+            copiar_itens(atual, proxima);
+            gerar_secao(proxima, mapa, inicio_secao_aleatorio(), COLUNAS_SECAO);
         }
 
         // atualizar velocidade...
