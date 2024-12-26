@@ -6,24 +6,27 @@
 #define FPS 60 // precisa?
 #define RAND_SEED 0 //time(0)
 
-#define TAM_TILE 40 // ?
 #define LINHAS_MAPA 12
 #define COLUNAS_MAPA 240
 #define LINHAS_SECAO 12
 #define COLUNAS_SECAO 30
+
+#define TAM_TILE 40 // nao funciona com alguns valores, por conta da relacao com a velocidade...
+#define VEL_INICIAL_MAPA 8 // deixar em funcao de TAM_TILE?
+//#define PASSO_VEL_MAPA 0
+//#define VEL_MAX_MAPA 8
 
 #define CHAR_PAREDE 'X'
 #define CHAR_MOEDA 'C'
 #define CHAR_ESPINHO 'Z'
 #define CHAR_ESPACO ' '
 
-#define VELOCIDADE_INICIAL_MAPA 8
-
 #define MAX_ITENS LINHAS_SECAO*COLUNAS_SECAO
 
 typedef struct {
     char tipo;
-    Rectangle ret;
+    int x; // nao quero lidar com structs aninhadas aqui... ao menos por enquanto
+    int y;
 } item_t;
 
 Color cor_tile(char tile) {
@@ -69,7 +72,7 @@ void gerar_secao(item_t itens[MAX_ITENS], char mapa[LINHAS_MAPA][COLUNAS_MAPA], 
     // assumindo que inicio_secao eh valido...
     
     int i, j;
-    int item = 0; // salvar a quantidade de itens?
+    int item = 0; // salvar a quantidade de itens? // nome ruim da variavel
 
     for (i = 0; i < LINHAS_SECAO; i++) {
         for (j = 0; j < COLUNAS_SECAO; j++) {
@@ -77,10 +80,8 @@ void gerar_secao(item_t itens[MAX_ITENS], char mapa[LINHAS_MAPA][COLUNAS_MAPA], 
 
             if (c == CHAR_PAREDE || c == CHAR_MOEDA || c == CHAR_ESPINHO) { // caracteres diferentes serao considerados espaco vazio
                 itens[item].tipo = c;
-                itens[item].ret.x = (j + j_offset_tela) * TAM_TILE; // so faz sentido pro atual? talvez seja melhor guardar soh o j...
-                itens[item].ret.y = i * TAM_TILE; // =
-                itens[item].ret.width = TAM_TILE; // sempre vai ser o mesmo...
-                itens[item].ret.height = TAM_TILE; // =
+                itens[item].x = (j + j_offset_tela) * TAM_TILE;
+                itens[item].y = i * TAM_TILE;
                 
                 item++;
             }
@@ -103,11 +104,10 @@ void copiar_itens(item_t destino[], item_t origem[]) { // ver uma funcao propria
 }
 
 // Desenha um item, se ele estiver na tela
-// melhor usar ponteiros para nao copiar structs (consome tempo)
 void desenhar_item(item_t *item) {
-    if (item->ret.x + item->ret.width > 0) {
-        DrawRectangleRec(item->ret, cor_tile(item->tipo));
-        DrawRectangleLines(item->ret.x, item->ret.y, TAM_TILE, TAM_TILE, GRAY); // para ver
+    if (item->x + TAM_TILE > 0) {
+        DrawRectangle(item->x, item->y, TAM_TILE, TAM_TILE, cor_tile(item->tipo));
+        DrawRectangleLines(item->x, item->y, TAM_TILE, TAM_TILE, GRAY); // para ver
     }
 }
 
@@ -131,7 +131,7 @@ int main() {
     item_t proxima[MAX_ITENS] = {0};
 
     int i;
-    float velocidade_mapa = VELOCIDADE_INICIAL_MAPA; // funcao_velocidade? log...
+    float velocidade_mapa = VEL_INICIAL_MAPA;
 
     srand(RAND_SEED);
 
@@ -147,15 +147,12 @@ int main() {
         
         // desenhar itens
         for (i = 0; i < MAX_ITENS; i++) {
-            // problema: ficam espacos entre as secoes... nao sei porque ainda
-            // o primeiro elemento da secao aparece com largura reduzida, por algum motivo
-
             desenhar_item(&atual[i]);
             desenhar_item(&proxima[i]);
         }
 
         // temp, soh para ver as secoes
-        DrawRectangleLines(atual[0].ret.x, atual[0].ret.y, COLUNAS_SECAO * TAM_TILE, LINHAS_SECAO * TAM_TILE, RED);
+        DrawRectangleLines(atual[0].x, atual[0].y, COLUNAS_SECAO * TAM_TILE, LINHAS_SECAO * TAM_TILE, RED);
 
         EndDrawing();
 
@@ -163,20 +160,24 @@ int main() {
 
         // mover itens
         for (i = 0; i < MAX_ITENS; i++) {
-            atual[i].ret.x -= velocidade_mapa;
-            proxima[i].ret.x -= velocidade_mapa;
+            atual[i].x -= velocidade_mapa;
+            proxima[i].x -= velocidade_mapa;
         }
 
         // fazer a troca se a secao atual sai da tela
-        if (proxima[0].ret.x == 0) {
-            // problema: as vezes copia todo estranho, parecendo corrompido (aparentemente se resolveu??)
-            
+        if (proxima[0].x <= 0) { // ideal seria ==, mas ha uma relacao entre TAM_TILE e velocidade_mapa...
             copiar_itens(atual, proxima);
             gerar_secao(proxima, mapa, inicio_secao_aleatorio(), COLUNAS_SECAO);
         }
 
         // atualizar velocidade...
+        // ou a cada iteracao, ou a cada "troca" de secao
+        // funcao_velocidade? log...
         // a partir de uma velocidade, o mapa simplesmente para de gerar...
+        // ou parece que a simples mudanca de velocidade quebra a geracao das secoes...
+        /*if (velocidade_mapa < VEL_MAX_MAPA) {
+            velocidade_mapa += PASSO_VEL_MAPA;
+        }*/
     }
 
     CloseWindow();
