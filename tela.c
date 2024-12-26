@@ -1,34 +1,78 @@
+// Apenas para registro: arquivos importantes da branch "tela": "tela.c" e pasta "resources".
+
+/* A FAZER:
+ * Velocidade variavel;
+ * Arquivos de mapas;
+ * Uso de ponteiros nas funcoes que usam structs (item_t...).
+ */
+
 #include "raylib.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 
+/* CONSTANTES */
+
+// Apenas para desenvolvimento
+#define VER_TILES    0
+#define MAPA_PARADO  0
+#define TECLA_MOVER  KEY_A
+
+// Configuracoes
 #define FPS 60 // precisa?
-#define RAND_SEED 0 //time(0)
+#define RAND_SEED time(0)
 
-#define LINHAS_MAPA 12
-#define COLUNAS_MAPA 240
-#define LINHAS_SECAO 12
-#define COLUNAS_SECAO 30
+// Caracteres do mapa
+#define CHAR_PAREDE   'X'
+#define CHAR_MOEDA    'C'
+#define CHAR_ESPINHO  'Z'
+#define CHAR_ESPACO   ' '
 
-#define TAM_TILE 40 // nao funciona com alguns valores, por conta da relacao com a velocidade...
+// Matrizes de mapa e secao
+#define LINHAS_MAPA    12
+#define COLUNAS_MAPA   240
+#define LINHAS_SECAO   12
+#define COLUNAS_SECAO  30
+
+// Maximo de itens em uma secao
+#define MAX_ITENS LINHAS_SECAO * COLUNAS_SECAO
+
+// Tamanho dos quadrados (importante para outras constantes)
+// nao funciona com alguns valores, por conta da relacao com a velocidade...
+// 20, 40 e 60 funcionam... (com velocidade inicial 8, pelo menos)
+#define TAM_TILE 40
+
+// Velocidade dos itens
 #define VEL_INICIAL_MAPA 8 // deixar em funcao de TAM_TILE?
-//#define PASSO_VEL_MAPA 0
-//#define VEL_MAX_MAPA 8
+//#define PASSO_VEL_MAPA 1 // ?
+//#define VEL_MAX_MAPA 40 // ?
 
-#define CHAR_PAREDE 'X'
-#define CHAR_MOEDA 'C'
-#define CHAR_ESPINHO 'Z'
-#define CHAR_ESPACO ' '
+// Texto "Distancia percorrida"
+#define TXT_DIST_X      0.1 * TAM_TILE
+#define TXT_DIST_Y      1.1 * TAM_TILE
+#define TXT_DIST_FONTE  0.6 * TAM_TILE
+#define TXT_DIST_COR    BLACK
 
-#define MAX_ITENS LINHAS_SECAO*COLUNAS_SECAO
+// Texto "Moedas coletadas"
+#define TXT_MOEDAS_X      TXT_DIST_X
+#define TXT_MOEDAS_Y      0.1 * TAM_TILE + TXT_DIST_Y + TXT_DIST_FONTE
+#define TXT_MOEDAS_FONTE  TXT_DIST_FONTE
+#define TXT_MOEDAS_COR    BLACK
 
+/* ESTRUTURAS */
+
+// Itens do jogo (paredes, moedas e espinhos)
 typedef struct {
     char tipo;
     int x; // nao quero lidar com structs aninhadas aqui... ao menos por enquanto
     int y;
 } item_t;
 
+/* FUNCOES */
+
+// Pega o mapa de um arquivo de texto (compensa fazer em outro arquivo, validar mapa...)
+
+// Retorna a cor que o elemento deve ter na tela (depois pode ser com imagem...)
 Color cor_tile(char tile) {
     Color cor;
 
@@ -42,10 +86,10 @@ Color cor_tile(char tile) {
     case CHAR_ESPINHO:
         cor = BROWN;
         break;
-    case CHAR_ESPACO:
+    case CHAR_ESPACO: // nao eh usado
         cor = LIGHTGRAY;
         break;
-    default: // ?
+    default:
         cor = MAGENTA; // so para indicar que algo deu errado
         break;
     }
@@ -53,10 +97,7 @@ Color cor_tile(char tile) {
     return cor;
 }
 
-// Pega o mapa de um arquivo de texto (compensa fazer em outro arquivo...)
-// ... (validar mapa...)
-
-// Gera um valor aleatorio para ser usado como inicio da secao
+// Gera e retorna um valor aleatorio para ser usado como inicio da secao
 int inicio_secao_aleatorio() {
     // 0, 30, 60, 90, 120, 150, 180, 210.
     // assumindo que o mapa possui o tamanho certo...
@@ -65,9 +106,16 @@ int inicio_secao_aleatorio() {
     return rand() % (COLUNAS_MAPA / COLUNAS_SECAO) * COLUNAS_SECAO;
 }
 
+// Retorna um "booleano" dizendo se o caractere representa um item (espaco vazio nao eh considerado item)
+int char_representa_item(char c) {
+    return c == CHAR_PAREDE || c == CHAR_MOEDA || c == CHAR_ESPINHO; // caracteres diferentes serao considerados espaco vazio
+}
+
 // Gera completamente uma secao, com o conteudo e os itens
-// Necessariamente cada secao deve possuir um elemento no "(0, 0)"
+// Necessariamente cada secao deve possuir um elemento no (0, 0) da matriz, para que o programa funcione
 // melhor usar ponteiros para nao copiar structs (consome tempo)
+// retorno?
+// usar item_t itens_do_mapa[] ? ver como vai ficar melhor com os arquivos...
 void gerar_secao(item_t itens[MAX_ITENS], char mapa[LINHAS_MAPA][COLUNAS_MAPA], int j_inicial_mapa, int j_offset_tela) {
     // assumindo que inicio_secao eh valido...
     
@@ -78,7 +126,7 @@ void gerar_secao(item_t itens[MAX_ITENS], char mapa[LINHAS_MAPA][COLUNAS_MAPA], 
         for (j = 0; j < COLUNAS_SECAO; j++) {
             char c = mapa[i][j_inicial_mapa + j];
 
-            if (c == CHAR_PAREDE || c == CHAR_MOEDA || c == CHAR_ESPINHO) { // caracteres diferentes serao considerados espaco vazio
+            if (char_representa_item(c)) {
                 itens[item].tipo = c;
                 itens[item].x = (j + j_offset_tela) * TAM_TILE;
                 itens[item].y = i * TAM_TILE;
@@ -91,8 +139,9 @@ void gerar_secao(item_t itens[MAX_ITENS], char mapa[LINHAS_MAPA][COLUNAS_MAPA], 
     return;
 }
 
-// Copia os itens de um vetor para o outro (ruim)
-// melhor usar ponteiros para nao copiar structs (consome tempo)
+// Copia os itens de um vetor para o outro (ruim?)
+// melhor usar ponteiros para nao copiar structs (consome tempo) // mas talvez aqui seria complicado, desreferenciar ponteiros...
+// retorno?
 void copiar_itens(item_t destino[], item_t origem[]) { // ver uma funcao propria do c para usar... // usar ponteiros? copiar structs eh ruim... 
     int i;
 
@@ -104,12 +153,20 @@ void copiar_itens(item_t destino[], item_t origem[]) { // ver uma funcao propria
 }
 
 // Desenha um item, se ele estiver na tela
+// retorno?
 void desenhar_item(item_t *item) {
-    if (item->x + TAM_TILE > 0) {
-        DrawRectangle(item->x, item->y, TAM_TILE, TAM_TILE, cor_tile(item->tipo));
-        DrawRectangleLines(item->x, item->y, TAM_TILE, TAM_TILE, GRAY); // para ver
+    int largura = TAM_TILE, altura = TAM_TILE; // caso precise mudar... (provavelmente nao vai, mas fica mais legivel)
+    
+    if (char_representa_item(item->tipo) && item->x + largura > 0) {
+        DrawRectangle(item->x, item->y, largura, altura, cor_tile(item->tipo));
+
+        if (VER_TILES) { // dev, para ver o contorno dos tiles dos itens
+            DrawRectangleLines(item->x, item->y, largura, altura, GRAY);
+        }
     }
 }
+
+/* MAIN (depois pode ser outra) */
 
 int main() {
     char mapa[LINHAS_MAPA][COLUNAS_MAPA] = {
@@ -130,12 +187,13 @@ int main() {
     item_t atual[MAX_ITENS] = {0};
     item_t proxima[MAX_ITENS] = {0};
 
-    int i;
+    int i, andou_um;
     float velocidade_mapa = VEL_INICIAL_MAPA;
+    int distancia_percorrida = 0, moedas_coletadas = 0;
 
     srand(RAND_SEED);
 
-    gerar_secao(atual, mapa, 0, 0);
+    gerar_secao(atual, mapa, 0, 0); // primeiro 0 faz com que a primeira secao seja a primeira do mapa (no mapa1 eh a mais tranquila, faz sentido comecar, e isso pode ser um padrao)
     gerar_secao(proxima, mapa, inicio_secao_aleatorio(), COLUNAS_SECAO);
 
     InitWindow(COLUNAS_SECAO * TAM_TILE, LINHAS_SECAO * TAM_TILE, "Jetpack Sadride");
@@ -145,27 +203,48 @@ int main() {
         BeginDrawing();
         ClearBackground(RAYWHITE);
         
-        // desenhar itens
+        andou_um = 0;
+
         for (i = 0; i < MAX_ITENS; i++) {
+            // MAX_ITENS pode ser ineficiente... 
+            // fazer uma funcao que retorna o maximo de itens entre atual e proxima?
+            // fazer dois loops separados eh melhor? nao parece ser...
+
+            // Desenhar itens
             desenhar_item(&atual[i]);
             desenhar_item(&proxima[i]);
+
+            if (!MAPA_PARADO || IsKeyDown(TECLA_MOVER)) { // dev, final nao havera if
+                // Mover itens
+                atual[i].x -= velocidade_mapa;
+                proxima[i].x -= velocidade_mapa;
+
+                // Ver se "o jogador" andou um tile
+                if (atual[i].x == 0 || proxima[i].x == 0) {
+                    andou_um = 1;
+                }
+            }
         }
 
-        // temp, soh para ver as secoes
-        DrawRectangleLines(atual[0].x, atual[0].y, COLUNAS_SECAO * TAM_TILE, LINHAS_SECAO * TAM_TILE, RED);
+        if (VER_TILES) { // dev, para ver as secoes
+            DrawRectangleLines(atual[0].x, atual[0].y, COLUNAS_SECAO * TAM_TILE, LINHAS_SECAO * TAM_TILE, RED);
+        }
 
+        // Desenha os textos "da pontuacao"
+        // eh interessante que sejam a ultima coisa a ser desenhada, para ficar bem na frente
+        // talvez possa ser soh o numero...
+        DrawText(TextFormat("Distância percorrida: %08d", distancia_percorrida), TXT_DIST_X, TXT_DIST_Y, TXT_DIST_FONTE, TXT_DIST_COR);
+        DrawText(TextFormat("Moedas coletadas: %08d", moedas_coletadas), TXT_MOEDAS_X, TXT_MOEDAS_Y, TXT_MOEDAS_FONTE, TXT_MOEDAS_COR);
+        
         EndDrawing();
-
-        // colisoes, eu acho
-
-        // mover itens
-        for (i = 0; i < MAX_ITENS; i++) {
-            atual[i].x -= velocidade_mapa;
-            proxima[i].x -= velocidade_mapa;
+        
+        // Contar distancia de um tile andada
+        if (andou_um) {
+            distancia_percorrida++;
         }
 
-        // fazer a troca se a secao atual sai da tela
-        if (proxima[0].x <= 0) { // ideal seria ==, mas ha uma relacao entre TAM_TILE e velocidade_mapa...
+        // Fazer o "deslizamento" se a secao atual sai da tela
+        if (proxima[0].x == 0) { // <= ? // vel e TAM_TILE...
             copiar_itens(atual, proxima);
             gerar_secao(proxima, mapa, inicio_secao_aleatorio(), COLUNAS_SECAO);
         }
@@ -173,8 +252,7 @@ int main() {
         // atualizar velocidade...
         // ou a cada iteracao, ou a cada "troca" de secao
         // funcao_velocidade? log...
-        // a partir de uma velocidade, o mapa simplesmente para de gerar...
-        // ou parece que a simples mudanca de velocidade quebra a geracao das secoes...
+        // velocidade depende de TAM_TILE...
         /*if (velocidade_mapa < VEL_MAX_MAPA) {
             velocidade_mapa += PASSO_VEL_MAPA;
         }*/
