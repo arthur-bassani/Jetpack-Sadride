@@ -1,8 +1,9 @@
 # Ignorar todos os arquivos
-*
+/*
 
 # Exceto
+!.gitignore
+!README.md
 !*.c
 !*.h
-!resources
-!README.md
+!resources/
