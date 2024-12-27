@@ -5,7 +5,25 @@ typedef struct{
     int x, y;
     float velocidade;
     int largura, altura;
+    Texture2D textura; //adicionar png
 }personagem_t;
+
+personagem_t inicializar_personagem() {
+    personagem_t jetpack;
+    jetpack.x = JANELA_X/6;
+    jetpack.y = JANELA_Y;
+    jetpack.velocidade = 0;
+    //interessante deixar tamanho do jetpack como variavel caso tenhamos um powerup
+    jetpack.largura = 40;
+    jetpack.altura = 40;
+    jetpack.textura = LoadTexture("resources/sprite_coracao.png");
+    return jetpack;
+}
+
+void textoCentralizado (char *texto, int fonteTamanho, int posY, Color cor) {
+    int larguraTexto = MeasureText(texto, fonteTamanho);
+    DrawText(texto, JANELA_X / 2 - larguraTexto / 2, posY, fonteTamanho, cor);
+}
 
 void movimento(int *y, float *velocidade, int jetpackaltura) {
     const float gravidade = 0.5f; //valores de gravidade e impulso livres para mudanca
@@ -35,58 +53,72 @@ void movimento(int *y, float *velocidade, int jetpackaltura) {
     }
 }
 
+void inicializar_jogo () {
+    InitWindow(JANELA_X, JANELA_Y, "Jetpack Sadride");
+    SetExitKey(0); // O ESC nao fecha mais a janela
+    DisableCursor(); HideCursor();
+    SetTargetFPS(60); // fps do jogo
+}
+
+EstadoJogo loop_jogo (personagem_t *jetpack, bool *isPaused) {
+    EstadoJogo estado = JOGO;
+
+    while(estado == JOGO && !WindowShouldClose()) {
+        if(IsKeyPressed(KEY_ESCAPE)) {  // mudar facilmente o estado de pausa
+            *isPaused = !*isPaused;
+        }
+
+        DrawFPS(10,10);
+        BeginDrawing();
+        ClearBackground(RAYWHITE);
+
+        if (!*isPaused) { // quando está rodando
+            movimento(&jetpack->y, &jetpack->velocidade, jetpack->altura);
+            //DrawRectangle(jetpack.x, jetpack.y, jetpack.largura, jetpack.altura, BLACK);
+        }
+
+        //Tudo isso pra ajeitar a dimensao de um png de 400x400, vou ver se só da pra ser assim
+        //provavermente fazer uma função pra carregar texturas mais tarde
+        Rectangle source = {0, 0, jetpack->textura.width, jetpack->textura.height};
+        Rectangle dest = {jetpack->x, jetpack->y, jetpack->largura, jetpack->altura};
+        Vector2 origin = {0, 0};
+        DrawTexturePro(jetpack->textura, source, dest, origin, 0.0f, WHITE);
+
+        // jogo pausado
+        if (*isPaused) {  // Measure Text pra ficar centralizado bem bunitinhu
+            textoCentralizado("Jogo Pausado", 30, JANELA_Y/2 - 20, WHITE);
+            textoCentralizado("Pressione ESC para continuar ou M para retornar ao menu",
+                20, JANELA_Y/2 + 20, GRAY);
+            if(IsKeyPressed(KEY_M)) {estado = MENU;}
+        }
+
+        EndDrawing();
+    }
+    return WindowShouldClose ? MENU : estado;
+}
+
 int main(){
+
+    inicializar_jogo ();
     EstadoJogo estado = MENU;
+    personagem_t jetpack = inicializar_personagem();
+    bool isPaused = false;      //variavel de controle para pausa
+
     while(estado != SAIR){
-        
-        bool isPaused = false;      // variavel de controle para pausa
-        if(estado == MENU) estado = tela_inicial();
-        if (estado == JOGO) {  // verificar se o jogo deve ser rodado
-            InitWindow(JANELA_X, JANELA_Y, "Jetpack Sadride");
-            SetExitKey(0); // O ESC nao fecha mais a janela
-            DisableCursor(); HideCursor();
+        if(estado == MENU) {
+            estado = tela_inicial();
 
-            personagem_t jetpack;
-            jetpack.x = JANELA_X/6;
-            jetpack.y = JANELA_Y;
-            jetpack.velocidade = 0;
-            //interessante deixar tamanho do jetpack como variavel caso tenhamos um powerup
-            jetpack.largura = 30;
-            jetpack.altura = 50;
+        }else if(estado == JOGO) {  // verificar se o jogo deve ser rodado
+            estado = loop_jogo(&jetpack, &isPaused);
+        }
 
-            SetTargetFPS(60); // fps do jogo
-
-            // Main game loop
-            while (estado == JOGO && !WindowShouldClose()){
-                DrawFPS(10,10);
-                if(IsKeyPressed(KEY_ESCAPE)) {  // mudar facilmente o estado de pausa
-                    isPaused = !isPaused;
-                }
-
-                BeginDrawing();
-                ClearBackground(RAYWHITE);
-
-                if (!isPaused) { // quando está rodando
-                    movimento(&jetpack.y, &jetpack.velocidade, jetpack.altura);
-                    //DrawRectangle(jetpack.x, jetpack.y, jetpack.largura, jetpack.altura, BLACK);
-                }
-
-                DrawRectangle(jetpack.x, jetpack.y, jetpack.largura, jetpack.altura, BLACK); // Ao apertar ESC nao vai sumir o personagem
-
-                // jogo pausado
-                if (isPaused) {  // Measure Text pra ficar centralizado bem bunitinhu
-                    DrawText("Jogo Pausado", JANELA_X/2 - MeasureText("Jogo Pausado", 30)/2, JANELA_Y/2 - 20, 30, WHITE);
-                    DrawText("Pressione ESC para continuar ou M para retornar ao menu",
-                        JANELA_X/2 - MeasureText("Pressione ESC para continuar ou M para retornar ao menu", 20)/2,
-                        JANELA_Y/2 + 20, 20, GRAY);
-                    if(IsKeyPressed(KEY_M)) {estado = MENU;}
-                }
-
-                EndDrawing();
-            }
-            CloseWindow();
+         if (WindowShouldClose()) { // para poder fechar o jogo apertando o botao fechar janela
+            estado = SAIR;  //só sair
+            break; // sair do loop, nao sei se precisa, mas vai que ne
         }
     }
+
+    UnloadTexture(jetpack.textura);
     CloseWindow();
     return 0;
 }
