@@ -14,6 +14,8 @@
 #define LINHAS_SECAO   12
 #define COLUNAS_SECAO  30
 
-/* FUNCOES */
+/* FUNCOES (implementadas em mapas.c) */
 
-int char_representa_item(char c); // implementacao em fundo.c // fazer em mapas.c?
+// somente as que necessitam ser usadas fora de mapas.c...
+
+int char_representa_item(char c);

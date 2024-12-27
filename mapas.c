@@ -13,8 +13,8 @@
 
 /* FUNCOES */
 
-// Precisa de char_representa_item(char c), que esta implementada em "fundo.c"
-int char_representa_item(char c) { // temp, ver como utilizar a do fundo.c (ou fundo.c usar essa...)
+// Retorna um "booleano" dizendo se o caractere representa um item (espaco vazio nao eh considerado item)
+int char_representa_item(char c) {
     return c == CHAR_PAREDE || c == CHAR_MOEDA || c == CHAR_ESPINHO; // caracteres diferentes serao considerados espaco vazio
 }
 
