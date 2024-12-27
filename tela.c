@@ -1,12 +1,9 @@
-// Apenas para registro: arquivos importantes da branch "tela": "tela.c" e pasta "resources".
-
 /* A FAZER:
- * Velocidade variavel;
- * Arquivos de mapas;
- * Uso de ponteiros nas funcoes que usam structs (item_t...).
+ * Velocidade variavel.
  */
 
 #include "raylib.h"
+#include "mapas.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -21,18 +18,6 @@
 // Configuracoes
 #define FPS 60 // precisa?
 #define RAND_SEED time(0)
-
-// Caracteres do mapa
-#define CHAR_PAREDE   'X'
-#define CHAR_MOEDA    'C'
-#define CHAR_ESPINHO  'Z'
-#define CHAR_ESPACO   ' '
-
-// Matrizes de mapa e secao
-#define LINHAS_MAPA    12
-#define COLUNAS_MAPA   240
-#define LINHAS_SECAO   12
-#define COLUNAS_SECAO  30
 
 // Maximo de itens em uma secao
 #define MAX_ITENS LINHAS_SECAO * COLUNAS_SECAO
@@ -62,7 +47,7 @@
 /* ESTRUTURAS */
 
 // Itens do jogo (paredes, moedas e espinhos)
-typedef struct {
+typedef struct { // .h?
     char tipo;
     int x; // nao quero lidar com structs aninhadas aqui... ao menos por enquanto
     int y;
@@ -70,7 +55,54 @@ typedef struct {
 
 /* FUNCOES */
 
-// Pega o mapa de um arquivo de texto (compensa fazer em outro arquivo, validar mapa...)
+// Retorna um "booleano" dizendo se o caractere representa um item (espaco vazio nao eh considerado item)
+int char_representa_item(char c) { // comum... deixar em mapas.c?
+    return c == CHAR_PAREDE || c == CHAR_MOEDA || c == CHAR_ESPINHO; // caracteres diferentes serao considerados espaco vazio
+}
+
+// Gera e retorna um valor aleatorio para ser usado como inicio da secao
+int inicio_secao_aleatorio() {
+    // assumindo que o mapa possui o tamanho certo...
+    // fazer algo mais sofisticado, numeros do intervalo que nao podem ser gerados...
+    return rand() % (COLUNAS_MAPA / COLUNAS_SECAO) * COLUNAS_SECAO; // 0, 30, 60, 90, 120, 150, 180, 210.
+}
+
+// Gera completamente uma secao, com o conteudo e os itens
+// Necessariamente cada secao deve possuir um elemento no (0, 0) da matriz, para que o programa funcione
+// retorno?
+// usar item_t itens_do_mapa[] ? ver como vai ficar melhor com os arquivos...
+void gerar_secao(item_t itens[MAX_ITENS], char mapa[LINHAS_MAPA][COLUNAS_MAPA], int j_inicial_mapa, int j_offset_tela) {
+    // assumindo que j_inicial_mapa eh valido...
+    
+    int i, j;
+    int item = 0; // salvar a quantidade de itens? // nome ruim da variavel
+
+    for (i = 0; i < LINHAS_SECAO; i++) {
+        for (j = 0; j < COLUNAS_SECAO; j++) {
+            char c = mapa[i][j_inicial_mapa + j];
+
+            if (char_representa_item(c)) {
+                itens[item].tipo = c;
+                itens[item].x = (j + j_offset_tela) * TAM_TILE;
+                itens[item].y = i * TAM_TILE;
+                
+                item++;
+            }
+        }
+    }
+}
+
+// Copia os itens de um vetor para o outro (ruim?)
+// retorno?
+void copiar_itens(item_t destino[], item_t origem[]) {
+    int i;
+
+    // limpar destino?
+
+    for (i = 0; i < MAX_ITENS; i++) {
+        destino[i] = origem[i];
+    }
+}
 
 // Retorna a cor que o elemento deve ter na tela (depois pode ser com imagem...)
 Color cor_tile(char tile) {
@@ -95,61 +127,6 @@ Color cor_tile(char tile) {
     }
 
     return cor;
-}
-
-// Gera e retorna um valor aleatorio para ser usado como inicio da secao
-int inicio_secao_aleatorio() {
-    // 0, 30, 60, 90, 120, 150, 180, 210.
-    // assumindo que o mapa possui o tamanho certo...
-
-    // fazer algo mais sofisticado, numeros do intervalo que nao podem ser gerados...
-    return rand() % (COLUNAS_MAPA / COLUNAS_SECAO) * COLUNAS_SECAO;
-}
-
-// Retorna um "booleano" dizendo se o caractere representa um item (espaco vazio nao eh considerado item)
-int char_representa_item(char c) {
-    return c == CHAR_PAREDE || c == CHAR_MOEDA || c == CHAR_ESPINHO; // caracteres diferentes serao considerados espaco vazio
-}
-
-// Gera completamente uma secao, com o conteudo e os itens
-// Necessariamente cada secao deve possuir um elemento no (0, 0) da matriz, para que o programa funcione
-// melhor usar ponteiros para nao copiar structs (consome tempo)
-// retorno?
-// usar item_t itens_do_mapa[] ? ver como vai ficar melhor com os arquivos...
-void gerar_secao(item_t itens[MAX_ITENS], char mapa[LINHAS_MAPA][COLUNAS_MAPA], int j_inicial_mapa, int j_offset_tela) {
-    // assumindo que inicio_secao eh valido...
-    
-    int i, j;
-    int item = 0; // salvar a quantidade de itens? // nome ruim da variavel
-
-    for (i = 0; i < LINHAS_SECAO; i++) {
-        for (j = 0; j < COLUNAS_SECAO; j++) {
-            char c = mapa[i][j_inicial_mapa + j];
-
-            if (char_representa_item(c)) {
-                itens[item].tipo = c;
-                itens[item].x = (j + j_offset_tela) * TAM_TILE;
-                itens[item].y = i * TAM_TILE;
-                
-                item++;
-            }
-        }
-    }
-
-    return;
-}
-
-// Copia os itens de um vetor para o outro (ruim?)
-// melhor usar ponteiros para nao copiar structs (consome tempo) // mas talvez aqui seria complicado, desreferenciar ponteiros...
-// retorno?
-void copiar_itens(item_t destino[], item_t origem[]) { // ver uma funcao propria do c para usar... // usar ponteiros? copiar structs eh ruim... 
-    int i;
-
-    // limpar destino?
-
-    for (i = 0; i < MAX_ITENS; i++) {
-        destino[i] = origem[i];
-    }
 }
 
 // Desenha um item, se ele estiver na tela
