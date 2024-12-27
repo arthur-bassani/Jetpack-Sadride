@@ -16,4 +16,4 @@
 
 /* FUNCOES */
 
-int char_representa_item(char c); // implementacao em tela.c // fazer em mapas.c?
+int char_representa_item(char c); // implementacao em fundo.c // fazer em mapas.c?

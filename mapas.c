@@ -13,8 +13,8 @@
 
 /* FUNCOES */
 
-// Precisa de char_representa_item(char c), que esta implementada em "tela.c"
-int char_representa_item(char c) { // temp, ver como utilizar a do tela.c (ou tela.c usar essa...)
+// Precisa de char_representa_item(char c), que esta implementada em "fundo.c"
+int char_representa_item(char c) { // temp, ver como utilizar a do fundo.c (ou fundo.c usar essa...)
     return c == CHAR_PAREDE || c == CHAR_MOEDA || c == CHAR_ESPINHO; // caracteres diferentes serao considerados espaco vazio
 }
 
