@@ -62,6 +62,7 @@ void inicializar_jogo () {
 
 EstadoJogo loop_jogo (personagem_t *jetpack, bool *isPaused) {
     EstadoJogo estado = JOGO;
+    *isPaused = false;
 
     while(estado == JOGO && !WindowShouldClose()) {
         if(IsKeyPressed(KEY_ESCAPE)) {  // mudar facilmente o estado de pausa
@@ -94,31 +95,34 @@ EstadoJogo loop_jogo (personagem_t *jetpack, bool *isPaused) {
 
         EndDrawing();
     }
-    return WindowShouldClose ? MENU : estado;
+    return estado;
 }
 
 int main(){
 
     inicializar_jogo ();
     EstadoJogo estado = MENU;
-    personagem_t jetpack = inicializar_personagem();
+    personagem_t jetpack;
     bool isPaused = false;      //variavel de controle para pausa
 
     while(estado != SAIR){
         if(estado == MENU) {
             estado = tela_inicial();
+        }
 
-        }else if(estado == JOGO) {  // verificar se o jogo deve ser rodado
+        if(estado == JOGO) {  // verificar se o jogo deve ser rodado
+            jetpack = inicializar_personagem();
             estado = loop_jogo(&jetpack, &isPaused);
         }
 
-         if (WindowShouldClose()) { // para poder fechar o jogo apertando o botao fechar janela
+        if (WindowShouldClose()) { // para poder fechar o jogo apertando o botao fechar janela
             estado = SAIR;  //só sair
             break; // sair do loop, nao sei se precisa, mas vai que ne
         }
-    }
+    
 
-    UnloadTexture(jetpack.textura);
+        UnloadTexture(jetpack.textura);
+    }
     CloseWindow();
     return 0;
 }

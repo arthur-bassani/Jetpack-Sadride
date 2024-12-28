@@ -6,9 +6,6 @@
 
 int tela_inicial(){
 
-    InitWindow(JANELA_X, JANELA_Y, "Jetpack Sadride");
-    SetExitKey(0); // O ESC nao fecha mais a janela
-    SetTargetFPS(60);
     //variaveis do menu gamer
     EstadoJogo estado = MENU;
     // Rectangle é uma struct da raylib mesmo
@@ -73,8 +70,6 @@ int tela_inicial(){
 
         EndDrawing();
     }
-
-    CloseWindow();
     return estado;
 }
 
