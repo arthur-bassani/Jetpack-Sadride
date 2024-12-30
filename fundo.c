@@ -1,5 +1,7 @@
 /* A FAZER:
- * Velocidade variavel.
+ * Usar char_representa_item de mapas.c
+ * Usar os mapas por arquivo
+ * Determinar pontuacao para passar de fase
  */
 
 #include "raylib.h"
@@ -98,9 +100,7 @@ void desenhar_item(item_t *item) {
     }
 }
 
-/* MAIN (depois pode ser outra) */
-
-int main() {
+int main() { // nao vai ser main...
     char mapa[LINHAS_MAPA][COLUNAS_MAPA] = {
 	    {'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'},
 	    {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'Z', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'Z', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
@@ -121,7 +121,7 @@ int main() {
 
     int i, andou_um;
     float velocidade_mapa = VEL_INICIAL_MAPA;
-    int distancia_percorrida = 0, moedas_coletadas = 0;
+    int distancia_percorrida = 0, moedas_coletadas = 0, pontuacao = 0;
 
     srand(RAND_SEED);
 
@@ -162,32 +162,40 @@ int main() {
             DrawRectangleLines(atual[0].x, atual[0].y, COLUNAS_SECAO * TAM_TILE, LINHAS_SECAO * TAM_TILE, RED);
         }
 
-        // Desenha os textos "da pontuacao"
+        // Desenha os textos da pontuacao
         // eh interessante que sejam a ultima coisa a ser desenhada, para ficar bem na frente
-        // talvez possa ser soh o numero...
-        DrawText(TextFormat("Distância percorrida: %08d", distancia_percorrida), TXT_DIST_X, TXT_DIST_Y, TXT_DIST_FONTE, TXT_DIST_COR);
-        DrawText(TextFormat("Moedas coletadas: %08d", moedas_coletadas), TXT_MOEDAS_X, TXT_MOEDAS_Y, TXT_MOEDAS_FONTE, TXT_MOEDAS_COR);
-        
+        // mostrar soh a pontuacao? (eh o que eh exigido...)
+        // talvez soh o numero...
+        // quantidade de zeros depende da pontuacao para passar de fase...
+        DrawText(TextFormat("Pontuação: %08d", pontuacao), TXT_PONT_X, TXT_PONT_Y, TXT_PONT_FONTE, TXT_PONT_COR);
+        DrawText(TextFormat("Distância percorrida: %08d", distancia_percorrida), TXT_PONT_X, TXT_DIST_Y, TXT_PONT_FONTE, TXT_PONT_COR);
+        DrawText(TextFormat("Moedas coletadas: %08d", moedas_coletadas), TXT_PONT_X, TXT_MOEDAS_Y, TXT_PONT_FONTE, TXT_PONT_COR);
+
         EndDrawing();
         
         // Contar distancia de um tile andada
         if (andou_um) {
             distancia_percorrida++;
+
+            // atualizar velocidade aqui?
         }
+
+        // moedas...
+        if (IsKeyPressed(TECLA_COLETAR_MOEDA)) { // dev
+            moedas_coletadas++;
+        }
+
+        // Calculo da pontuacao
+        // no pdf eh a distancia que eh multiplicada por 10, mas acho que assim faz mais sentido...
+        pontuacao = distancia_percorrida + 10 * moedas_coletadas;
+
+        // passar de fase? if (pontuacao >= ...)
 
         // Fazer o "deslizamento" se a secao atual sai da tela
         if (proxima[0].x == 0) { // <= ? // vel e TAM_TILE...
             copiar_itens(atual, proxima);
             gerar_secao(proxima, mapa, inicio_secao_aleatorio(), COLUNAS_SECAO);
         }
-
-        // atualizar velocidade...
-        // ou a cada iteracao, ou a cada "troca" de secao
-        // funcao_velocidade? log...
-        // velocidade depende de TAM_TILE...
-        /*if (velocidade_mapa < VEL_MAX_MAPA) {
-            velocidade_mapa += PASSO_VEL_MAPA;
-        }*/
     }
 
     CloseWindow();

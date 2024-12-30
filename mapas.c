@@ -20,7 +20,7 @@ int char_representa_item(char c) {
 
 // Retorna 1 se o caractere eh valido no mapa
 int char_valido_mapa(char c) {
-    return char_representa_item(c) || c == CHAR_ESPACO;
+    return c == CHAR_ESPACO || char_representa_item(c);
 }
 
 // Verifica se cada secao possui um item na sua primeira posicao (necessario para a geracao do jogo)
@@ -83,7 +83,6 @@ int le_arq_mapa(char nome_arq[], char mapa[LINHAS_MAPA][COLUNAS_MAPA]) {
 }
 
 /* MAIN (para testes) */
-
 /*int main() { // temp
     InitWindow(1600, 400, "Arquivos de mapa");
     SetTargetFPS(60);
