@@ -26,7 +26,3 @@ void movimento(int *y, float *velocidade, int jetpackaltura); //vertical da jetp
 //constantes menu.c
 #define BOTAO_LARG 200
 #define BOTAO_ALT 50
-
-//files .c para que nao seja preciso compilar outros files junto com main.c
-//deixa-los comentados /* */  caso compile junto
-#include "menu.c"

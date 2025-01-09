@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-//#include "sadride.h" //comentar caso nao compile
+#include "sadride.h"
 
 int tela_inicial(){
 
