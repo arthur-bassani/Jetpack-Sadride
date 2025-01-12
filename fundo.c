@@ -1,8 +1,3 @@
-/* A FAZER:
- * Usar os mapas por arquivo
- * Determinar pontuacao para passar de fase
- */
-
 #include "raylib.h"
 #include "sadride.h"
 #include <stdlib.h>
@@ -56,7 +51,7 @@ void copiar_itens(item_t destino[], item_t origem[]) {
 Color cor_tile(char tile) {
     Color cor;
 
-    switch(tile) {
+    switch (tile) {
     case CHAR_PAREDE:
         cor = BLACK;
         break;
@@ -77,16 +72,31 @@ Color cor_tile(char tile) {
     return cor;
 }
 
+// Retorna o retangulo que o item eh na tela
+Rectangle item_retangulo(item_t *item) {
+    return (Rectangle) {item->x, item->y, TAM_TILE, TAM_TILE};
+}
+
+// Retorna um circulo inscrito no retangulo que item_retangulo retornaria
+circulo_t item_circulo(item_t *item) {
+    int raio = TAM_TILE / 2;
+    return (circulo_t) {(Vector2) {item->x + raio, item->y + raio}, raio};
+}
+
 // Desenha um item, se ele estiver na tela
-// retorno?
 void desenhar_item(item_t *item) {
-    int largura = TAM_TILE, altura = TAM_TILE; // caso precise mudar... (provavelmente nao vai, mas fica mais legivel)
-    
-    if (char_representa_item(item->tipo) && item->x + largura > 0) {
-        DrawRectangle(item->x, item->y, largura, altura, cor_tile(item->tipo));
+    Rectangle ret = item_retangulo(item);
+
+    if (char_representa_item(item->tipo) && item->x + ret.width > 0) {
+        if (item->tipo == CHAR_MOEDA) {
+            circulo_t circulo = item_circulo(item);
+            DrawCircle(circulo.centro.x, circulo.centro.y, circulo.raio, cor_tile(item->tipo));
+        } else {
+            DrawRectangleRec(item_retangulo(item), cor_tile(item->tipo));
+        }
 
         if (VER_TILES) { // dev, para ver o contorno dos tiles dos itens
-            DrawRectangleLines(item->x, item->y, largura, altura, GRAY);
+            DrawRectangleLines(ret.x, ret.y, ret.width, ret.height, GRAY);
         }
     }
 }
@@ -107,19 +117,12 @@ void escrever_pontuacao(int pontuacao, int distancia_percorrida, int moedas_cole
 }
 
 // Aumenta a velocidade do mapa
-// Retorna 0 se a velocidade ja eh maxima e nao foi alterada e 1 no caso contrario
-int aumentar_velocidade(float *velocidade_mapa, float acrescimo, float maximo) {
-    if (*velocidade_mapa == maximo) {
-        return 0;
-    }
-
+void aumentar_velocidade(float *velocidade_mapa, float acrescimo, float maximo) {
     if (*velocidade_mapa + acrescimo <= maximo) {
         *velocidade_mapa += acrescimo;
     } else {
         *velocidade_mapa = maximo;
     }
-
-    return 1;
 }
 
 // Passa os itens da proxima secao para a atual e gera uma nova proxima
