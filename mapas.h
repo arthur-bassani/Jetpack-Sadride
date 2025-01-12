@@ -11,11 +11,11 @@
 #define COLUNAS_MAPA   240
 
 // Matriz de secao
-#define LINHAS_SECAO   12
+#define LINHAS_SECAO   LINHAS_MAPA
 #define COLUNAS_SECAO  30
 
 /* FUNCOES (implementadas em mapas.c) */
 
-// somente as que necessitam ser usadas fora de mapas.c...
-
 int char_representa_item(char c);
+
+int le_arq_mapa(const char *nome_arq, char mapa[LINHAS_MAPA][COLUNAS_MAPA]);

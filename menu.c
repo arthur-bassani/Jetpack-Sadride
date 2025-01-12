@@ -76,7 +76,7 @@ int tela_inicial(){
 int tela_leaderboard (int estado){
 
     int i;
-    SetTargetFPS(60);
+    SetTargetFPS(FPS);
     leaderboard_t jogador[5]; //num de jogadores q podem aparecer na tela
     Rectangle botaoRetornar = {JANELA_X/2 - BOTAO_LARG/2, JANELA_Y-100, BOTAO_LARG, BOTAO_ALT};
     Rectangle botaoTeclaM = {JANELA_X/2 - BOTAO_LARG/2 -70, JANELA_Y-100, BOTAO_ALT, BOTAO_ALT};
