@@ -1,12 +1,8 @@
-//#include "raylib.h" // temp
 #include "mapas.h"
 #include <stdio.h>
 #include <string.h>
 
 /* CONSTANTES */
-
-// Apenas para desenvolvimento
-#define SALVAR_CARACTERES_INVALIDOS_COMO_ESPACO 0
 
 // Auxiliar
 #define TAM_LINHA COLUNAS_MAPA + 2 // '\n' e '\0'
@@ -55,13 +51,13 @@ int le_arq_mapa(char nome_arq[], char mapa[LINHAS_MAPA][COLUNAS_MAPA]) {
             return 0;
         }
 
-        // tirar o '\n'
+        // tirar o '\n' // precisa?
         if (linha[strlen(linha) - 1] == '\n') {
             linha[strlen(linha) - 1] = '\0';
         }
 
         // verifica se ha um item no inicio de cada secao
-        if (i == 0 && valida_secoes(linha) == 0) { // combinar no outro if? pode ficar menos legivel...
+        if (i == 0 && valida_secoes(linha) == 0) {
             return 0;
         }
 
@@ -81,34 +77,3 @@ int le_arq_mapa(char nome_arq[], char mapa[LINHAS_MAPA][COLUNAS_MAPA]) {
 
     return 1;
 }
-
-/* MAIN (para testes) */
-/*int main() { // temp
-    InitWindow(1600, 400, "Arquivos de mapa");
-    SetTargetFPS(60);
-
-    char nome_arq[] = "resources/mapas/teste.txt";
-    char mapa[LINHAS_MAPA][COLUNAS_MAPA] = {0};
-
-    while (!WindowShouldClose()) {
-        BeginDrawing();
-        ClearBackground(RAYWHITE);
-
-        DrawText(TextFormat("Leu mapa \"%s\": %d", nome_arq, le_arq_mapa(nome_arq, mapa)), 0, 0, 40, BLACK);
-
-        // desenha o mapa
-        for (int i = 0; i < LINHAS_MAPA; i++) {
-            for (int j = 0; j < COLUNAS_MAPA; j++) {
-                int font_size = 6;
-                char c = mapa[i][j];
-                DrawText(TextFormat("%c", c == ' ' ? '_' : c), j * font_size * 1.1, 60 + i * font_size, font_size, BLACK);
-            }
-        }
-
-        EndDrawing();
-    }
-
-    CloseWindow();
-
-    return 0;
-}*/

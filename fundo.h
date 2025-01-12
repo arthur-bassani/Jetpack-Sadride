@@ -2,23 +2,21 @@
 
 /* CONSTANTES */
 
-// Apenas para desenvolvimento (possivelmente temporario)
-#define VER_TILES            0
-#define MAPA_PARADO          0
-#define VER_VELOCIMETRO      0
-#define TECLA_MOVER          KEY_A
-#define TECLA_PARAR          KEY_P // nao pode existir no jogo final
-#define TECLA_COLETAR_MOEDA  KEY_M // nao pode existir no jogo final
-
 // Configuracoes
-#define FPS 60 // precisa?
-#define RAND_SEED time(0)
-#define VEL_MAPA_VARIAVEL 1
+#define FPS                60 // precisa? // sadride.h
+#define RAND_SEED          time(0) // sadride.h?
+#define VEL_MAPA_VARIAVEL  1
+#define VER_TILES          0
+#define VELOCIMETRO        1
+//#define MAPA_PARADO          0 // temp
+//#define TECLA_MOVER          KEY_A // temp
+//#define TECLA_PARAR          KEY_P // nao pode existir no jogo final // temp
+//#define TECLA_COLETAR_MOEDA  KEY_M // nao pode existir no jogo final // temp
 
 // Maximo de itens em uma secao
 #define MAX_ITENS LINHAS_SECAO * COLUNAS_SECAO
 
-// Tamanho dos quadrados (importante para outras constantes)
+// Tamanho dos quadrados (importante para outras constantes) // sadride.h...
 #define TAM_TILE 40
 
 // Velocidade do mapa
@@ -40,7 +38,7 @@
 // Itens do jogo (paredes, moedas e espinhos)
 typedef struct {
     char tipo;
-    int x; // nao quero lidar com structs aninhadas aqui... ao menos por enquanto
+    int x; // escolhi nao usar struct para a posicao
     int y;
 } item_t;
 

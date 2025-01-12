@@ -13,9 +13,9 @@
 
 /* FUNCOES */
 
-int char_representa_item(char c) { // temp, usar a de mapas.c...
+/*int char_representa_item(char c) { // temp, usar a de mapas.c...
     return c == CHAR_PAREDE || c == CHAR_MOEDA || c == CHAR_ESPINHO;
-}
+}*/
 
 // Gera e retorna um valor aleatorio para ser usado como inicio da secao
 int inicio_secao_aleatorio() {
@@ -105,7 +105,40 @@ int item_passou_inicio_tela(int x_antes, int x_agora) {
     return x_antes > 0 && x_agora <= 0;
 }
 
-int main() { // nao vai ser main...
+// Desenha os textos da pontuacao
+// mostrar soh a pontuacao? (eh o que eh exigido...)
+// talvez soh o numero...
+// quantidade de zeros depende da pontuacao para passar de fase...
+void escrever_pontuacao(int pontuacao, int distancia_percorrida, int moedas_coletadas) {
+    DrawText(TextFormat("Pontuação: %08d", pontuacao), TXT_PONT_X, TXT_PONT_Y, TXT_PONT_FONTE, TXT_PONT_COR);
+    DrawText(TextFormat("Distância percorrida: %08d", distancia_percorrida), TXT_PONT_X, TXT_DIST_Y, TXT_PONT_FONTE, TXT_PONT_COR);
+    DrawText(TextFormat("Moedas coletadas: %08d", moedas_coletadas), TXT_PONT_X, TXT_MOEDAS_Y, TXT_PONT_FONTE, TXT_PONT_COR);
+}
+
+// Aumenta a velocidade do mapa
+// Retorna 0 se a velocidade ja eh maxima e nao foi alterada e 1 no caso contrario
+// testar...
+int aumentar_velocidade(float *velocidade_mapa, float acrescimo, float maximo) {
+    if (*velocidade_mapa == maximo) {
+        return 0;
+    }
+
+    if (*velocidade_mapa + acrescimo <= maximo) {
+        *velocidade_mapa += acrescimo;
+    } else {
+        *velocidade_mapa = maximo;
+    }
+
+    return 1;
+}
+
+// Passa os itens da proxima secao para a atual e gera uma nova proxima
+void deslizamento_secoes(item_t atual[], item_t proxima[], char mapa[LINHAS_MAPA][COLUNAS_MAPA]) {
+    copiar_itens(atual, proxima);
+    gerar_secao(proxima, mapa, inicio_secao_aleatorio(), atual[0].x + COLUNAS_SECAO * TAM_TILE);
+}
+
+int main0() { // nao pode ser main...
     // jah dah pra usar o dos arquivos...
     char mapa[LINHAS_MAPA][COLUNAS_MAPA] = {
 	    {'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'},
@@ -122,12 +155,14 @@ int main() { // nao vai ser main...
 	    {'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'}
     }; // absolutamente temporario
     
+    // secoes
     item_t atual[MAX_ITENS] = {0};
     item_t proxima[MAX_ITENS] = {0};
 
     int i, andou_um;
     float velocidade_mapa = VEL_INICIAL_MAPA;
     int distancia_percorrida = 0, moedas_coletadas = 0, pontuacao = 0;
+    int atual_x_antes, proxima_x_antes;
 
     srand(RAND_SEED);
 
@@ -146,7 +181,7 @@ int main() { // nao vai ser main...
         andou_um = 0;
 
         for (i = 0; i < MAX_ITENS; i++) {
-            // MAX_ITENS pode ser ineficiente... 
+            // MAX_ITENS pode ser ineficiente...
             // fazer uma funcao que retorna o maximo de itens entre atual e proxima?
             // fazer dois loops separados eh melhor? nao parece ser...
 
@@ -154,9 +189,9 @@ int main() { // nao vai ser main...
             desenhar_item(&atual[i]);
             desenhar_item(&proxima[i]);
 
-            if (!IsKeyDown(TECLA_PARAR) && (!MAPA_PARADO || IsKeyDown(TECLA_MOVER))) { // dev, final nao havera if
-                int atual_x_antes = atual[i].x;
-                int proxima_x_antes = proxima[i].x;
+            if (1 /*!IsKeyDown(TECLA_PARAR) && (!MAPA_PARADO || IsKeyDown(TECLA_MOVER))*/) { // alguma coisa que indica que o jogo esta acontecendo...
+                atual_x_antes = atual[i].x;
+                proxima_x_antes = proxima[i].x;
 
                 // Mover itens
                 atual[i].x -= (int) velocidade_mapa;
@@ -174,16 +209,11 @@ int main() { // nao vai ser main...
             DrawRectangleLines(atual[0].x, atual[0].y, COLUNAS_SECAO * TAM_TILE, LINHAS_SECAO * TAM_TILE, RED);
         }
 
-        // Desenha os textos da pontuacao
+        // Escreve a pontuacao na tela
         // eh interessante que sejam a ultima coisa a ser desenhada, para ficar bem na frente
-        // mostrar soh a pontuacao? (eh o que eh exigido...)
-        // talvez soh o numero...
-        // quantidade de zeros depende da pontuacao para passar de fase...
-        DrawText(TextFormat("Pontuação: %08d", pontuacao), TXT_PONT_X, TXT_PONT_Y, TXT_PONT_FONTE, TXT_PONT_COR);
-        DrawText(TextFormat("Distância percorrida: %08d", distancia_percorrida), TXT_PONT_X, TXT_DIST_Y, TXT_PONT_FONTE, TXT_PONT_COR);
-        DrawText(TextFormat("Moedas coletadas: %08d", moedas_coletadas), TXT_PONT_X, TXT_MOEDAS_Y, TXT_PONT_FONTE, TXT_PONT_COR);
+        escrever_pontuacao(pontuacao, distancia_percorrida, moedas_coletadas);
 
-        if (VER_VELOCIMETRO) { // dev
+        if (VELOCIMETRO) {
             const char *text = TextFormat("%09.6f", velocidade_mapa / TAM_TILE);
             DrawText(text, COLUNAS_SECAO * TAM_TILE - MeasureText(text, TXT_PONT_FONTE) - TXT_PONT_X, TXT_PONT_Y, TXT_PONT_FONTE, LIME);
         }
@@ -195,19 +225,15 @@ int main() { // nao vai ser main...
             distancia_percorrida++;
 
             // Atualiza velocidade
-            if (VEL_MAPA_VARIAVEL) { // config ou dev?
-                if (velocidade_mapa + PASSO_VEL_MAPA <= VEL_MAX_MAPA) {
-                    velocidade_mapa += PASSO_VEL_MAPA;
-                } else {
-                    velocidade_mapa = VEL_MAX_MAPA;
-                }
+            if (VEL_MAPA_VARIAVEL) {
+                aumentar_velocidade(&velocidade_mapa, PASSO_VEL_MAPA, VEL_MAX_MAPA);
             }
         }
 
-        // moedas...
-        if (IsKeyPressed(TECLA_COLETAR_MOEDA)) { // dev
+        // moedas... colisoes?
+        /*if (IsKeyPressed(TECLA_COLETAR_MOEDA)) { // dev
             moedas_coletadas++;
-        }
+        }*/
 
         // Calculo da pontuacao
         // no pdf eh a distancia que eh multiplicada por 10, mas acho que assim faz mais sentido...
@@ -217,8 +243,7 @@ int main() { // nao vai ser main...
 
         // Fazer o "deslizamento" se a secao atual sai da tela
         if (proxima[0].x <= 0) {
-            copiar_itens(atual, proxima);
-            gerar_secao(proxima, mapa, inicio_secao_aleatorio(), atual[0].x + COLUNAS_SECAO * TAM_TILE);
+            deslizamento_secoes(atual, proxima, mapa);
         }
     }
 
