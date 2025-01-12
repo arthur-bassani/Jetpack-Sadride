@@ -16,6 +16,6 @@
 
 /* FUNCOES (implementadas em mapas.c) */
 
-// somente as que necessitam ser usadas fora de mapas.c...
-
 int char_representa_item(char c);
+
+int le_arq_mapa(const char *nome_arq, char mapa[LINHAS_MAPA][COLUNAS_MAPA]);

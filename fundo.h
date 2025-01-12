@@ -1,10 +1,12 @@
 #include "raylib.h"
+#include "mapas.h"
 
 /* CONSTANTES */
 
+// Tamanho dos quadrados (importante para outras constantes)
+#define TAM_TILE 40
+
 // Configuracoes
-#define FPS                60 // precisa? // sadride.h
-#define RAND_SEED          time(0) // sadride.h?
 #define VEL_MAPA_VARIAVEL  1
 #define VER_TILES          0
 #define VELOCIMETRO        1
@@ -15,9 +17,6 @@
 
 // Maximo de itens em uma secao
 #define MAX_ITENS LINHAS_SECAO * COLUNAS_SECAO
-
-// Tamanho dos quadrados (importante para outras constantes) // sadride.h...
-#define TAM_TILE 40
 
 // Velocidade do mapa
 #define VEL_INICIAL_MAPA   0.2000 * TAM_TILE
@@ -44,4 +43,16 @@ typedef struct {
 
 /* FUNCOES (implementadas em fundo.c) */
 
-// somente as que necessitam ser usadas fora de fundo.c... (acho que todas menos "main"...)
+int inicio_secao_aleatorio();
+
+void gerar_secao(item_t itens[MAX_ITENS], char mapa[LINHAS_MAPA][COLUNAS_MAPA], int j_inicial_mapa, int j_offset_tela);
+
+void desenhar_item(item_t *item);
+
+int item_passou_inicio_tela(int x_antes, int x_agora);
+
+void escrever_pontuacao(int pontuacao, int distancia_percorrida, int moedas_coletadas);
+
+int aumentar_velocidade(float *velocidade_mapa, float acrescimo, float maximo);
+
+void deslizamento_secoes(item_t atual[], item_t proxima[], char mapa[LINHAS_MAPA][COLUNAS_MAPA]);

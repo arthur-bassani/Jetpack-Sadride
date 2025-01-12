@@ -34,7 +34,7 @@ int valida_secoes(char primeira_linha[]) {
 
 // Le o mapa e salva em uma matriz, com todas as validacoes
 // Retorna 1 se deu tudo certo e 0 caso contrario
-int le_arq_mapa(char nome_arq[], char mapa[LINHAS_MAPA][COLUNAS_MAPA]) {
+int le_arq_mapa(const char *nome_arq, char mapa[LINHAS_MAPA][COLUNAS_MAPA]) {
     FILE *arq = fopen(nome_arq, "r");
     int i, j;
     char linha[TAM_LINHA] = {0};
