@@ -1,4 +1,4 @@
-//#include "mapas.h" // para as dimensoes do mapa
+#include "raylib.h"
 #include "fundo.h" // por causa de TAM_TILE
 
 /* CONSTANTES */
