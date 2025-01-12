@@ -6,6 +6,18 @@
 #define FPS        60
 #define RAND_SEED  time(0)
 
+// Pontuacoes para passar de fase
+#define PONT_FASE_2 1000 // valor?
+#define PONT_FASE_3 2000 // valor?
+
+// Textos de pontuacao
+#define TXT_PONT_FONTE  0.8 * TAM_TILE
+#define TXT_PONT_COR    WHITE
+#define TXT_PONT_X      0.1 * TAM_TILE
+#define TXT_PONT_Y      1.1 * TAM_TILE
+#define TXT_DIST_Y      0.1 * TAM_TILE + TXT_PONT_Y + TXT_PONT_FONTE
+#define TXT_MOEDAS_Y    0.1 * TAM_TILE + TXT_DIST_Y + TXT_PONT_FONTE
+
 //constantes da janela 16:9 ratio
 //#define JANELA_Y 600
 //#define JANELA_X (JANELA_Y/9) *16

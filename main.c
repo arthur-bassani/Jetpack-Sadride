@@ -97,12 +97,25 @@ void checar_colisoes_itens(personagem_t *jetpack, item_t itens[], int *moedas_co
     }
 }
 
+int pegar_mapa(int fase, char mapa[LINHAS_MAPA][COLUNAS_MAPA]) {
+    return le_arq_mapa(TextFormat("resources/mapas/mapa%d.txt", fase), mapa);
+}
+
+// Desenha os textos da pontuacao
+void escrever_pontuacao(int fase, int pontuacao) {
+    // mostrando tambem a fase, mas acho melhor depois em outro lugar (temp)
+    DrawText(TextFormat("%d %08d", fase, pontuacao), TXT_PONT_X, TXT_PONT_Y, TXT_PONT_FONTE, TXT_PONT_COR);
+    //DrawText(TextFormat("Distância percorrida: %08d", distancia_percorrida), TXT_PONT_X, TXT_DIST_Y, TXT_PONT_FONTE, TXT_PONT_COR);
+    //DrawText(TextFormat("Moedas coletadas: %08d", moedas_coletadas), TXT_PONT_X, TXT_MOEDAS_Y, TXT_PONT_FONTE, TXT_PONT_COR);
+}
+
 EstadoJogo loop_jogo (personagem_t *jetpack, bool *isPaused) {
     EstadoJogo estado = JOGO;
     *isPaused = false;
 
     // fundo
     char mapa[LINHAS_MAPA][COLUNAS_MAPA] = {0};
+    char mapa_aux[LINHAS_MAPA][COLUNAS_MAPA] = {0}; // para checar se o arquivo esta ok ao mudar o mapa
 
     // secoes
     item_t atual[MAX_ITENS] = {0};
@@ -113,13 +126,14 @@ EstadoJogo loop_jogo (personagem_t *jetpack, bool *isPaused) {
     int distancia_percorrida = 0, moedas_coletadas = 0, pontuacao = 0;
     int atual_x_antes, proxima_x_antes;
 
-    int n_mapa = 1; // identifica o mapa sendo usado
+    int fase = 1; // identifica o mapa sendo usado
 
     srand(RAND_SEED);
 
     // atribuir mapa
-    if (le_arq_mapa(TextFormat("resources/mapas/mapa%d.txt", n_mapa), mapa) != 1) {
+    if (pegar_mapa(1, mapa) != 1) {
         // erro! voltar para o menu...
+        CloseWindow(); // temp
     }
 
     // gerar secoes iniciais
@@ -133,16 +147,14 @@ EstadoJogo loop_jogo (personagem_t *jetpack, bool *isPaused) {
             *isPaused = !*isPaused;
         }
 
-        DrawFPS(10,10);
+        DrawFPS(10,10); // coisas sao desenhadas em cima...
         BeginDrawing();
-        ClearBackground(RAYWHITE);
+        ClearBackground(BLACK);
 
         // Fundo
         andou_um = 0;
 
-        for (i = 0; i < MAX_ITENS; i++) {
-            // MAX_ITENS pode ser ineficiente... mas deixa assim
-
+        for (i = 0; i < MAX_ITENS; i++) { // MAX_ITENS pode ser ineficiente... mas deixa assim
             // Desenhar itens
             desenhar_item(&atual[i]);
             desenhar_item(&proxima[i]);
@@ -169,7 +181,7 @@ EstadoJogo loop_jogo (personagem_t *jetpack, bool *isPaused) {
 
         // Escreve a pontuacao na tela
         // eh interessante que sejam a ultima coisa a ser desenhada, para ficar bem na frente
-        escrever_pontuacao(pontuacao, distancia_percorrida, moedas_coletadas);
+        escrever_pontuacao(fase, pontuacao);
 
         if (VELOCIMETRO) {
             const char *text = TextFormat("%09.6f", velocidade_mapa / TAM_TILE);
@@ -194,11 +206,21 @@ EstadoJogo loop_jogo (personagem_t *jetpack, bool *isPaused) {
         // no pdf eh a distancia que eh multiplicada por 10, mas acho que assim faz mais sentido...
         pontuacao = distancia_percorrida + 10 * moedas_coletadas;
 
-        // passar de fase? if (pontuacao >= ...)
-        // trocar o mapa...
+        // passar de fase? if (pontuacao >= ...) // trocar o mapa...
 
         // Fazer o "deslizamento" se a secao atual sai da tela
         if (proxima[0].x <= 0) {
+            // passar de fase (trocar de mapa)
+            if (fase == 1 && pontuacao >= PONT_FASE_2 && pegar_mapa(2, mapa_aux)) {
+                fase = 2;
+                pegar_mapa(fase, mapa);
+                // aumentar velocidade / velocidade max?
+            } else if (fase == 2 && pontuacao >= PONT_FASE_3 && pegar_mapa(3, mapa_aux)) {
+                fase = 3;
+                pegar_mapa(fase, mapa);
+                // aumentar velocidade / velocidade max?
+            }
+
             deslizamento_secoes(atual, proxima, mapa);
         }
 
@@ -220,7 +242,7 @@ EstadoJogo loop_jogo (personagem_t *jetpack, bool *isPaused) {
         if (*isPaused) {  // Measure Text pra ficar centralizado bem bunitinhu
             textoCentralizado("Jogo Pausado", 30, JANELA_Y/2 - 20, WHITE);
             textoCentralizado("Pressione ESC para continuar ou M para retornar ao menu",
-                20, JANELA_Y/2 + 20, GRAY);
+                20, JANELA_Y/2 + 20, WHITE);
             if(IsKeyPressed(KEY_M)) {estado = MENU;}
         }
 

@@ -53,7 +53,7 @@ Color cor_tile(char tile) {
 
     switch (tile) {
     case CHAR_PAREDE:
-        cor = BLACK;
+        cor = WHITE;
         break;
     case CHAR_MOEDA:
         cor = GOLD;
@@ -80,7 +80,7 @@ Rectangle item_retangulo(item_t *item) {
 // Retorna um circulo inscrito no retangulo que item_retangulo retornaria
 circulo_t item_circulo(item_t *item) {
     int raio = TAM_TILE / 2;
-    return (circulo_t) {(Vector2) {item->x + raio, item->y + raio}, raio};
+    return (circulo_t) {(Vector2) {item->x + raio, item->y + raio}, PC_DIAM_MOEDA * raio};
 }
 
 // Desenha um item, se ele estiver na tela
@@ -104,16 +104,6 @@ void desenhar_item(item_t *item) {
 // Retorna um "booleano" que indica se o item passou pelo inicio da tela
 int item_passou_inicio_tela(int x_antes, int x_agora) {
     return x_antes > 0 && x_agora <= 0;
-}
-
-// Desenha os textos da pontuacao
-// mostrar soh a pontuacao? (eh o que eh exigido...)
-// talvez soh o numero...
-// quantidade de zeros depende da pontuacao para passar de fase...
-void escrever_pontuacao(int pontuacao, int distancia_percorrida, int moedas_coletadas) {
-    DrawText(TextFormat("Pontuação: %08d", pontuacao), TXT_PONT_X, TXT_PONT_Y, TXT_PONT_FONTE, TXT_PONT_COR);
-    DrawText(TextFormat("Distância percorrida: %08d", distancia_percorrida), TXT_PONT_X, TXT_DIST_Y, TXT_PONT_FONTE, TXT_PONT_COR);
-    DrawText(TextFormat("Moedas coletadas: %08d", moedas_coletadas), TXT_PONT_X, TXT_MOEDAS_Y, TXT_PONT_FONTE, TXT_PONT_COR);
 }
 
 // Aumenta a velocidade do mapa

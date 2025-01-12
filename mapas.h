@@ -11,7 +11,7 @@
 #define COLUNAS_MAPA   240
 
 // Matriz de secao
-#define LINHAS_SECAO   12
+#define LINHAS_SECAO   LINHAS_MAPA
 #define COLUNAS_SECAO  30
 
 /* FUNCOES (implementadas em mapas.c) */
