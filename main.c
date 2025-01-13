@@ -14,6 +14,17 @@ typedef struct {
     float velocidade;
 } missil_t;
 
+/*typedef enum {
+    INATIVO,
+    ARMADO,
+    DISPARADO
+} EstadoLaser;
+
+typedef struct {
+    Rectangle hitbox;
+    EstadoLaser estado;
+} laser_t;*/
+
 personagem_t inicializar_personagem() {
     personagem_t jetpack;
     jetpack.x = JANELA_X/6;
@@ -129,12 +140,12 @@ void escrever_pontuacao(int pontuacao) {
 
 // MISSIL
 int deve_lancar_missil(int distancia_percorrida, int fase) {
-    return distancia_percorrida * fase % FATOR_FREQ_MISSIL == 0;
+    return distancia_percorrida / (4 - fase) % FATOR_FREQ_MISSIL == 0;
 }
 
-void lancar_missil(missil_t *missil, int y_max, int y_min, float velocidade) {
+void lancar_missil(missil_t *missil, int y_min, int y_max, float velocidade) {
     missil->hitbox.x = JANELA_X;
-    missil->hitbox.y = y_max + rand() % (y_max - y_min + 1);
+    missil->hitbox.y = y_min + rand() % (y_max - y_min + 1);
     missil->velocidade = velocidade;
 }
 
@@ -146,6 +157,18 @@ void mover_missil(missil_t *missil) {
     missil->hitbox.x -= (int) missil->velocidade;
 }
 
+// LASER
+/*
+int posicao_laser(int linha_max, int linha_min, int espessura) {
+    return linha_min + rand() % (linha_max - linha_min + 1);
+}
+
+double armar_laser(Rectangle *laser) {
+    return GetTime();
+}*/
+
+void disparar_laser() {}
+
 EstadoJogo loop_jogo (personagem_t *jetpack, bool *isPaused) {
     EstadoJogo estado = JOGO;
     *isPaused = false;
@@ -154,6 +177,7 @@ EstadoJogo loop_jogo (personagem_t *jetpack, bool *isPaused) {
     Sound som_moeda = LoadSound("resources/sons/moeda.wav");
     Sound som_fase = LoadSound("resources/sons/fase.wav");
     //Sound som_dano = LoadSound("resources/sons/dano.wav");
+    Sound som_missil = LoadSound("resources/sons/missil.wav");
     //Music musica = LoadMusicStream("resources/sons/musica.wav"); // ?
 
     // fundo
@@ -169,7 +193,7 @@ EstadoJogo loop_jogo (personagem_t *jetpack, bool *isPaused) {
     item_t proxima[MAX_ITENS] = {0};
 
     // eventos
-    missil_t missil = {{-2 * JANELA_X, 0, TAM_TILE, TAM_TILE}};
+    missil_t missil = {{-2 * JANELA_X, 0, TAM_TILE, TAM_TILE}}; // inicializa o missil fora da tela
 
     srand(RAND_SEED);
 
@@ -180,9 +204,7 @@ EstadoJogo loop_jogo (personagem_t *jetpack, bool *isPaused) {
     }
 
     // gerar secoes iniciais
-    gerar_secao(atual, mapa, 0, 0); // primeiro 0 faz com que a primeira secao seja a primeira do mapa.
-                                    // no mapa1 eh a mais tranquila, faz sentido comecar, 
-                                    // e isso pode ser um padrao.
+    gerar_secao(atual, mapa, 0, 0);
     gerar_secao(proxima, mapa, inicio_secao_aleatorio(), COLUNAS_SECAO * TAM_TILE);
 
     while(estado == JOGO && !WindowShouldClose()) {
@@ -217,7 +239,7 @@ EstadoJogo loop_jogo (personagem_t *jetpack, bool *isPaused) {
                 }
             }
 
-            // colisoes?
+            // colisoes
             checar_colisoes_item(jetpack, &atual[i], &moedas_coletadas, som_moeda);
             checar_colisoes_item(jetpack, &proxima[i], &moedas_coletadas, som_moeda);
         }
@@ -232,7 +254,7 @@ EstadoJogo loop_jogo (personagem_t *jetpack, bool *isPaused) {
 
         if (VELOCIMETRO) {
             const char *text = TextFormat("%09.6f", velocidade_mapa / TAM_TILE);
-            DrawText(text, COLUNAS_SECAO * TAM_TILE - MeasureText(text, TXT_PONT_FONTE) - TXT_PONT_X, TXT_PONT_Y, TXT_PONT_FONTE, LIME);
+            DrawText(text, COLUNAS_SECAO * TAM_TILE - MeasureText(text, TXT_PONT_FONTE) - TXT_PONT_X, TXT_PONT_Y, TXT_PONT_FONTE, WHITE);
         }
         
         // Contar distancia de um tile andada
@@ -245,9 +267,16 @@ EstadoJogo loop_jogo (personagem_t *jetpack, bool *isPaused) {
             }
 
             // Eventos
+            // Missil
             if (distancia_percorrida >= DIST_MIN_MISSIL && !ha_missil_tela(&missil) && deve_lancar_missil(distancia_percorrida, fase)) {
                 lancar_missil(&missil, 2 * TAM_TILE, 9 * TAM_TILE, velocidade_mapa * FATOR_VEL_MISSIL);
+                PlaySound(som_missil);
             }
+
+            // Laser
+            /*if (fase >= 2) {
+                ;
+            }*/
         }
 
         if (ha_missil_tela(&missil)) {
@@ -314,6 +343,7 @@ EstadoJogo loop_jogo (personagem_t *jetpack, bool *isPaused) {
     // descarregar sons
     UnloadSound(som_moeda);
     UnloadSound(som_fase);
+    UnloadSound(som_missil);
 
     return estado;
 }
