@@ -19,7 +19,7 @@ int tela_inicial(){
     EnableCursor();
     ShowCursor();
 
-    char titulo[] = "Jetpack Sadride Demo";
+    char titulo[] = "Jetpack Sadride";
 
     while (!WindowShouldClose()){
         Vector2 mousePos = GetMousePosition(); // Vector2 é struct que pega x e y (propria raylib)
@@ -29,7 +29,7 @@ int tela_inicial(){
         DrawFPS(10,10);
         DrawRectangleLines(10, 10, JANELA_X-20, JANELA_Y-20, WHITE);
 
-        DrawText(titulo, JANELA_X / 2 - (MeasureText(titulo, 26)/2), JANELA_Y/2 - 100, 26, WHITE);
+        DrawText(titulo, JANELA_X / 2 - (MeasureText(titulo, 40)/2), JANELA_Y/2 - 150, 40, WHITE);
         // centralizar texto: ( tamanho tela / 2) - (tamanho texto / 2)
 
         //botoes
@@ -210,7 +210,8 @@ int atualizar_leaderboard(char *nome_arquivo, int pontuacao, int num_jogadores_l
                 DrawRectangleRec(caixa_texto, LIGHTGRAY);
                 DrawRectangleLines((int)caixa_texto.x, (int)caixa_texto.y, (int)caixa_texto.width, (int)caixa_texto.height, RED);
                 DrawText(novo_nome, (int)caixa_texto.x + 5, (int)caixa_texto.y + 8, 40, MAROON);
-                
+                DrawText(TextFormat("Sua pontuação: %d", pontuacao), (int)caixa_texto.x +5, (int)caixa_texto.y + 75, 20, WHITE);
+
             EndDrawing();
             key = GetCharPressed();
             while (key > 0){
@@ -288,6 +289,8 @@ int tela_gameover(int estado, int pontuacao){
                 DrawText(str_temp, JANELA_X/2 - MeasureText(str_temp, 20)/2, JANELA_Y/3 + i * 40, 20, cor);
             }
         }
+
+            DrawText(TextFormat("Sua pontuação: %d", pontuacao), JANELA_X/12, JANELA_Y/2, 20, WHITE);
 
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
             mousePos = GetMousePosition();

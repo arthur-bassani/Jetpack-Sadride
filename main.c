@@ -56,9 +56,9 @@ void movimento(int *y, float *velocidade, int jetpackaltura) {
     }
 
     // previne que caia da janela
-    int groundLevel = JANELA_Y - jetpackaltura;
-    if (*y > groundLevel) {
-        *y = groundLevel;
+    int chao_tela = JANELA_Y - jetpackaltura;
+    if (*y > chao_tela) {
+        *y = chao_tela;
         *velocidade = 0; // para o movimento
     }
 }
