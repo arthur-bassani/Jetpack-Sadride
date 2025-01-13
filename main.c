@@ -17,6 +17,9 @@ typedef struct {
 // sons
 Sound som_moeda, som_dano, som_fase, som_missil;
 
+// texturas
+Texture2D texturaEspinho;
+
 void carregar_sons() {
     som_moeda = LoadSound("resources/sons/moeda.wav");
     som_dano = LoadSound("resources/sons/dano.wav");
@@ -85,6 +88,9 @@ void inicializar_jogo () {
     // sons
     InitAudioDevice();
     carregar_sons();
+
+    // texturas
+    texturaEspinho = LoadTexture("resources/sprite_espinho.png");
 }
 
 // Retorna o personagem como um retangulo para ver as colisoes
@@ -220,8 +226,8 @@ EstadoJogo loop_jogo (personagem_t *jetpack, bool *isPaused) {
 
         for (i = 0; i < MAX_ITENS; i++) { // MAX_ITENS pode ser ineficiente... mas deixa assim
             // Desenhar itens
-            desenhar_item(&atual[i]);
-            desenhar_item(&proxima[i]);
+            desenhar_item(&atual[i], texturaEspinho);
+            desenhar_item(&proxima[i], texturaEspinho);
 
             if (!*isPaused) {
                 atual_x_antes = atual[i].x;
@@ -371,6 +377,8 @@ int main() {
     }
 
     descarregar_sons();
+    UnloadTexture(texturaEspinho);
+
     CloseWindow();
 
     return 0;
