@@ -14,16 +14,9 @@ typedef struct {
     float velocidade;
 } missil_t;
 
-/*typedef enum {
-    INATIVO,
-    ARMADO,
-    DISPARADO
-} EstadoLaser;
-
-typedef struct {
-    Rectangle hitbox;
-    EstadoLaser estado;
-} laser_t;*/
+// sons usados em diferentes funcoes
+Sound som_moeda;
+Sound som_dano;
 
 personagem_t inicializar_personagem() {
     personagem_t jetpack;
@@ -83,8 +76,15 @@ Rectangle personagem_retangulo(personagem_t *jetpack) {
     return (Rectangle) {jetpack->x, jetpack->y, jetpack->largura, jetpack->altura};
 }
 
+// Para quando o personagem morre
+void morrer(EstadoJogo *estado, int pontuacao) {
+    PlaySound(som_dano);
+    *estado = tela_gameover(GAMEOVER, pontuacao);
+}
+
 // Checa as colisoes com um item do fundo
-void checar_colisoes_item(personagem_t *jetpack, item_t *item, int *moedas_coletadas, Sound som_moeda) {
+// Retorna 1 se o estado do jogo deve ser retornado apos checar
+int checar_colisoes_item(personagem_t *jetpack, item_t *item, int *moedas_coletadas, EstadoJogo *estado, int pontuacao) {
     Rectangle hitbox_jp = personagem_retangulo(jetpack);
 
     if (item->tipo == CHAR_MOEDA) {
@@ -112,12 +112,14 @@ void checar_colisoes_item(personagem_t *jetpack, item_t *item, int *moedas_colet
                 }
                 break;
             case CHAR_ESPINHO:
-                
-                //PlaySound(som_dano);
+                morrer(estado, pontuacao);
+                return 1;
                 break;
             }
         }
     }
+
+    return 0;
 }
 
 // Pega o pelo arquivo, usando a fase informada
@@ -157,28 +159,15 @@ void mover_missil(missil_t *missil) {
     missil->hitbox.x -= (int) missil->velocidade;
 }
 
-// LASER
-/*
-int posicao_laser(int linha_max, int linha_min, int espessura) {
-    return linha_min + rand() % (linha_max - linha_min + 1);
-}
-
-double armar_laser(Rectangle *laser) {
-    return GetTime();
-}*/
-
-void disparar_laser() {}
-
 EstadoJogo loop_jogo (personagem_t *jetpack, bool *isPaused) {
     EstadoJogo estado = JOGO;
     *isPaused = false;
 
     // sons
-    Sound som_moeda = LoadSound("resources/sons/moeda.wav");
+    som_moeda = LoadSound("resources/sons/moeda.wav");
     Sound som_fase = LoadSound("resources/sons/fase.wav");
-    //Sound som_dano = LoadSound("resources/sons/dano.wav");
+    som_dano = LoadSound("resources/sons/dano.wav");
     Sound som_missil = LoadSound("resources/sons/missil.wav");
-    //Music musica = LoadMusicStream("resources/sons/musica.wav"); // ?
 
     // fundo
     char mapa[LINHAS_MAPA][COLUNAS_MAPA] = {0};
@@ -200,7 +189,7 @@ EstadoJogo loop_jogo (personagem_t *jetpack, bool *isPaused) {
     // atribuir mapa
     if (pegar_mapa(1, mapa) != 1) {
         // erro! voltar para o menu...
-        CloseWindow(); // temp
+        //CloseWindow(); // temp
     }
 
     // gerar secoes iniciais
@@ -240,8 +229,10 @@ EstadoJogo loop_jogo (personagem_t *jetpack, bool *isPaused) {
             }
 
             // colisoes
-            checar_colisoes_item(jetpack, &atual[i], &moedas_coletadas, som_moeda);
-            checar_colisoes_item(jetpack, &proxima[i], &moedas_coletadas, som_moeda);
+            if (checar_colisoes_item(jetpack, &atual[i], &moedas_coletadas, &estado, pontuacao) || 
+                checar_colisoes_item(jetpack, &proxima[i], &moedas_coletadas, &estado, pontuacao)) {
+                return estado;
+            }
         }
 
         if (VER_TILES) { // dev, para ver as secoes
@@ -285,7 +276,8 @@ EstadoJogo loop_jogo (personagem_t *jetpack, bool *isPaused) {
             }
             
             if (ha_missil_tela(&missil) && CheckCollisionRecs(personagem_retangulo(jetpack), missil.hitbox)) {
-                // game over
+                morrer(&estado, pontuacao);
+                return estado;
             }
             
             DrawRectangleRec(missil.hitbox, COR_MISSIL);
@@ -343,6 +335,7 @@ EstadoJogo loop_jogo (personagem_t *jetpack, bool *isPaused) {
     // descarregar sons
     UnloadSound(som_moeda);
     UnloadSound(som_fase);
+    UnloadSound(som_dano);
     UnloadSound(som_missil);
 
     return estado;

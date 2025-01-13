@@ -38,8 +38,8 @@ int valida_chao_teto(char mapa[LINHAS_MAPA][COLUNAS_MAPA]) {
     int j;
 
     for (j = 0; j < COLUNAS_MAPA; j++) {
-        if (mapa[0][j] != CHAR_PAREDE && mapa[0][j] != CHAR_ESPINHO && 
-            mapa[LINHAS_MAPA - 1][j] != CHAR_PAREDE && mapa[LINHAS_MAPA - 1][j] != CHAR_ESPINHO) {
+        if ((mapa[0][j] != CHAR_PAREDE && mapa[0][j] != CHAR_ESPINHO) || 
+            (mapa[LINHAS_MAPA - 1][j] != CHAR_PAREDE && mapa[LINHAS_MAPA - 1][j] != CHAR_ESPINHO)) {
             return 0;
         }
     }

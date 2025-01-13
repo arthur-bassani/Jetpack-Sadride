@@ -11,7 +11,7 @@
 // Configuracoes
 #define VEL_MAPA_VARIAVEL  1
 #define VER_TILES          0
-#define VELOCIMETRO        1
+#define VELOCIMETRO        0
 
 // Maximo de itens em uma secao
 #define MAX_ITENS LINHAS_SECAO * COLUNAS_SECAO
