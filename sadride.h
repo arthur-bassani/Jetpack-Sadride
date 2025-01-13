@@ -7,8 +7,8 @@
 #define RAND_SEED  time(0)
 
 // Pontuacoes para passar de fase
-#define PONT_FASE_2 1000 // valor?
-#define PONT_FASE_3 2000 // valor?
+#define PONT_FASE_2 3000 // valor?
+#define PONT_FASE_3 7500 // valor?
 
 // Textos de pontuacao
 #define TXT_PONT_FONTE  0.8 * TAM_TILE
@@ -17,6 +17,16 @@
 #define TXT_PONT_Y      1.1 * TAM_TILE
 #define TXT_DIST_Y      0.1 * TAM_TILE + TXT_PONT_Y + TXT_PONT_FONTE
 #define TXT_MOEDAS_Y    0.1 * TAM_TILE + TXT_DIST_Y + TXT_PONT_FONTE
+
+// Missil
+#define DIST_MIN_MISSIL    50   // distancia minima a ser percorrida para o primeiro missil aparecer
+#define FATOR_FREQ_MISSIL  50   // 140 pareceu bom, mas tem que ver
+#define FATOR_VEL_MISSIL   1.75 // velocidade do missil em relacao a do mapa
+#define COR_MISSIL         BLUE
+
+// Laser
+//#define COR_ARMADO     ORANGE
+//#define COR_DISPARADO  RED
 
 //constantes da janela 16:9 ratio
 //#define JANELA_Y 600

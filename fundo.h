@@ -11,15 +11,14 @@
 // Configuracoes
 #define VEL_MAPA_VARIAVEL  1
 #define VER_TILES          0
-#define VELOCIMETRO        0
+#define VELOCIMETRO        1
 
 // Maximo de itens em uma secao
 #define MAX_ITENS LINHAS_SECAO * COLUNAS_SECAO
 
 // Velocidade do mapa
 #define VEL_INICIAL_MAPA  0.2000 * TAM_TILE
-#define PASSO_VEL_MAPA    0.0001 * TAM_TILE // acho interessante que seja sutil, mas o valor pode 
-                                            // depender da pontuacao para passar de fase...
+#define PASSO_VEL_MAPA    0.0001 * TAM_TILE // acho interessante que seja sutil
 #define VEL_MAX_MAPA      0.4000 * TAM_TILE
 
 /* ESTRUTURAS */
