@@ -46,7 +46,7 @@ Rectangle item_retangulo(item_t *item);
 
 circulo_t item_circulo(item_t *item);
 
-void desenhar_item(item_t *item);
+void desenhar_item(item_t *item, Texture2D texturaEspinho);
 
 int item_passou_inicio_tela(int x_antes, int x_agora);
 
