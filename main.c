@@ -14,9 +14,22 @@ typedef struct {
     float velocidade;
 } missil_t;
 
-// sons usados em diferentes funcoes
-Sound som_moeda;
-Sound som_dano;
+// sons
+Sound som_moeda, som_dano, som_fase, som_missil;
+
+void carregar_sons() {
+    som_moeda = LoadSound("resources/sons/moeda.wav");
+    som_dano = LoadSound("resources/sons/dano.wav");
+    som_fase = LoadSound("resources/sons/fase.wav");
+    som_missil = LoadSound("resources/sons/missil.wav");
+}
+
+void descarregar_sons() {
+    UnloadSound(som_moeda);
+    UnloadSound(som_dano);
+    UnloadSound(som_fase);
+    UnloadSound(som_missil);
+}
 
 personagem_t inicializar_personagem() {
     personagem_t jetpack;
@@ -65,10 +78,13 @@ void movimento(int *y, float *velocidade, int jetpackaltura) {
 
 void inicializar_jogo () {
     InitWindow(JANELA_X, JANELA_Y, "Jetpack Sadride");
-    InitAudioDevice();
     SetExitKey(0); // O ESC nao fecha mais a janela
     DisableCursor(); HideCursor();
     SetTargetFPS(FPS); // fps do jogo
+
+    // sons
+    InitAudioDevice();
+    carregar_sons();
 }
 
 // Retorna o personagem como um retangulo para ver as colisoes
@@ -162,12 +178,6 @@ void mover_missil(missil_t *missil) {
 EstadoJogo loop_jogo (personagem_t *jetpack, bool *isPaused) {
     EstadoJogo estado = JOGO;
     *isPaused = false;
-
-    // sons
-    som_moeda = LoadSound("resources/sons/moeda.wav");
-    Sound som_fase = LoadSound("resources/sons/fase.wav");
-    som_dano = LoadSound("resources/sons/dano.wav");
-    Sound som_missil = LoadSound("resources/sons/missil.wav");
 
     // fundo
     char mapa[LINHAS_MAPA][COLUNAS_MAPA] = {0};
@@ -332,12 +342,6 @@ EstadoJogo loop_jogo (personagem_t *jetpack, bool *isPaused) {
         EndDrawing();
     }
 
-    // descarregar sons
-    UnloadSound(som_moeda);
-    UnloadSound(som_fase);
-    UnloadSound(som_dano);
-    UnloadSound(som_missil);
-
     return estado;
 }
 
@@ -366,6 +370,7 @@ int main() {
         UnloadTexture(jetpack.textura);
     }
 
+    descarregar_sons();
     CloseWindow();
 
     return 0;
