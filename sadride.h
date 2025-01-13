@@ -2,6 +2,8 @@
 #include "fundo.h" // por causa de TAM_TILE
 
 /* CONSTANTES */
+#define MAX_CHEAT_LENGTH 10
+#define CHEAT_CODE "lucas"
 
 #define FPS        60
 #define RAND_SEED  time(0)

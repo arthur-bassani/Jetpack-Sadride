@@ -2,6 +2,10 @@
 #include <stdlib.h>
 #include <time.h>
 
+//n sei aonde colocar isso
+char cheat_buffer [MAX_CHEAT_LENGTH] = "";
+bool cheat_activated = false;
+
 typedef struct{
     int x, y;
     float velocidade;
@@ -14,9 +18,25 @@ typedef struct {
     float velocidade;
 } missil_t;
 
-// sons usados em diferentes funcoes
-Sound som_moeda;
-Sound som_dano;
+// sons
+Sound som_moeda, som_dano, som_fase, som_missil;
+
+// texturas
+Texture2D texturaEspinho;
+
+void carregar_sons() {
+    som_moeda = LoadSound("resources/sons/moeda.wav");
+    som_dano = LoadSound("resources/sons/dano.wav");
+    som_fase = LoadSound("resources/sons/fase.wav");
+    som_missil = LoadSound("resources/sons/missil.wav");
+}
+
+void descarregar_sons() {
+    UnloadSound(som_moeda);
+    UnloadSound(som_dano);
+    UnloadSound(som_fase);
+    UnloadSound(som_missil);
+}
 
 personagem_t inicializar_personagem() {
     personagem_t jetpack;
@@ -26,9 +46,31 @@ personagem_t inicializar_personagem() {
     //interessante deixar tamanho do jetpack como variavel caso tenhamos um powerup
     jetpack.largura = 40;
     jetpack.altura = 40;
-    jetpack.textura = LoadTexture("resources/sprite_coracao.png");
+    if (cheat_activated) {
+        jetpack.textura = LoadTexture("resources/sprite_penguim.png");
+    } else {
+        jetpack.textura = LoadTexture("resources/sprite_coracao.png");
+    }
     return jetpack;
 }
+
+//funcao do easter egg (so funciona in game)
+void verificar_cheat (char tecla) {
+    int len = strlen(cheat_buffer);
+    
+    //adiciona a tecla ao buffer (limitando tamanho)
+    if (len < MAX_CHEAT_LENGTH - 1) {
+        cheat_buffer[len] = tecla;
+        cheat_buffer[len+1] = '\0';
+    }
+    
+    //verifica se a sequencia completa foi digitada 
+    if (strstr(cheat_buffer, CHEAT_CODE)) {
+        cheat_activated = true;
+        memset(cheat_buffer, 0, MAX_CHEAT_LENGTH); // reseta o buffer
+    }
+}
+
 
 void textoCentralizado (char *texto, int fonteTamanho, int posY, Color cor) {
     int larguraTexto = MeasureText(texto, fonteTamanho);
@@ -65,10 +107,16 @@ void movimento(int *y, float *velocidade, int jetpackaltura) {
 
 void inicializar_jogo () {
     InitWindow(JANELA_X, JANELA_Y, "Jetpack Sadride");
-    InitAudioDevice();
     SetExitKey(0); // O ESC nao fecha mais a janela
     DisableCursor(); HideCursor();
     SetTargetFPS(FPS); // fps do jogo
+
+    // sons
+    InitAudioDevice();
+    carregar_sons();
+
+    // texturas
+    texturaEspinho = LoadTexture("resources/sprite_espinho.png");
 }
 
 // Retorna o personagem como um retangulo para ver as colisoes
@@ -163,12 +211,6 @@ EstadoJogo loop_jogo (personagem_t *jetpack, bool *isPaused) {
     EstadoJogo estado = JOGO;
     *isPaused = false;
 
-    // sons
-    som_moeda = LoadSound("resources/sons/moeda.wav");
-    Sound som_fase = LoadSound("resources/sons/fase.wav");
-    som_dano = LoadSound("resources/sons/dano.wav");
-    Sound som_missil = LoadSound("resources/sons/missil.wav");
-
     // fundo
     char mapa[LINHAS_MAPA][COLUNAS_MAPA] = {0};
     int i, andou_um;
@@ -210,8 +252,8 @@ EstadoJogo loop_jogo (personagem_t *jetpack, bool *isPaused) {
 
         for (i = 0; i < MAX_ITENS; i++) { // MAX_ITENS pode ser ineficiente... mas deixa assim
             // Desenhar itens
-            desenhar_item(&atual[i]);
-            desenhar_item(&proxima[i]);
+            desenhar_item(&atual[i], texturaEspinho);
+            desenhar_item(&proxima[i], texturaEspinho);
 
             if (!*isPaused) {
                 atual_x_antes = atual[i].x;
@@ -329,14 +371,17 @@ EstadoJogo loop_jogo (personagem_t *jetpack, bool *isPaused) {
             if(IsKeyPressed(KEY_M)) {estado = MENU;}
         }
 
+        // Easter Egg
+        // detectar o easteregg digitando lucas
+        if (IsKeyPressed(KEY_L)) verificar_cheat('l');
+        if (IsKeyPressed(KEY_U)) verificar_cheat('u');
+        if (IsKeyPressed(KEY_C)) verificar_cheat('c');
+        if (IsKeyPressed(KEY_A)) verificar_cheat('a');
+        if (IsKeyPressed(KEY_S)) verificar_cheat('s');
+        if (IsKeyPressed(KEY_W)) cheat_activated = false;
+
         EndDrawing();
     }
-
-    // descarregar sons
-    UnloadSound(som_moeda);
-    UnloadSound(som_fase);
-    UnloadSound(som_dano);
-    UnloadSound(som_missil);
 
     return estado;
 }
@@ -365,6 +410,9 @@ int main() {
     
         UnloadTexture(jetpack.textura);
     }
+
+    descarregar_sons();
+    UnloadTexture(texturaEspinho);
 
     CloseWindow();
 

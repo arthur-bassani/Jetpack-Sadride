@@ -15,7 +15,7 @@ int inicio_secao_aleatorio() {
 // retorno?
 void gerar_secao(item_t itens[MAX_ITENS], char mapa[LINHAS_MAPA][COLUNAS_MAPA], int j_inicial_mapa, int j_offset_tela) {
     // assumindo que j_inicial_mapa eh valido...
-    
+
     int i, j;
     int item = 0; // salvar a quantidade de itens se necessario...
 
@@ -27,7 +27,7 @@ void gerar_secao(item_t itens[MAX_ITENS], char mapa[LINHAS_MAPA][COLUNAS_MAPA], 
                 itens[item].tipo = c;
                 itens[item].x = j * TAM_TILE + j_offset_tela;
                 itens[item].y = i * TAM_TILE;
-                
+
                 item++;
             }
         }
@@ -83,13 +83,20 @@ circulo_t item_circulo(item_t *item) {
 }
 
 // Desenha um item, se ele estiver na tela
-void desenhar_item(item_t *item) {
+void desenhar_item(item_t *item, Texture2D texturaEspinho) {
     Rectangle ret = item_retangulo(item);
+    
+    //deixar isso aqui em um lugar seguro, que abra só 1 vez
 
     if (char_representa_item(item->tipo) && item->x + ret.width > 0) {
         if (item->tipo == CHAR_MOEDA) {
             circulo_t circulo = item_circulo(item);
             DrawCircle(circulo.centro.x, circulo.centro.y, circulo.raio, cor_tile(item->tipo));
+        } else if (item->tipo == CHAR_ESPINHO) {
+            Rectangle source = {0, 0, texturaEspinho.width, texturaEspinho.height};
+            Rectangle dest = {ret.x, ret.y, ret.width, ret.height};
+            Vector2 origin = {0,0};
+            DrawTexturePro(texturaEspinho, source, dest, origin, 0.0f, WHITE);
         } else {
             DrawRectangleRec(item_retangulo(item), cor_tile(item->tipo));
         }
