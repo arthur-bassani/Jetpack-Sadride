@@ -2,6 +2,10 @@
 #include <stdlib.h>
 #include <time.h>
 
+//n sei aonde colocar isso
+char cheat_buffer [MAX_CHEAT_LENGTH] = "";
+bool cheat_activated = false;
+
 typedef struct{
     int x, y;
     float velocidade;
@@ -39,9 +43,31 @@ personagem_t inicializar_personagem() {
     //interessante deixar tamanho do jetpack como variavel caso tenhamos um powerup
     jetpack.largura = 40;
     jetpack.altura = 40;
-    jetpack.textura = LoadTexture("resources/sprite_coracao.png");
+    if (cheat_activated) {
+        jetpack.textura = LoadTexture("resources/sprite_penguim.png");
+    } else {
+        jetpack.textura = LoadTexture("resources/sprite_coracao.png");
+    }
     return jetpack;
 }
+
+//funcao do easter egg (so funciona in game)
+void verificar_cheat (char tecla) {
+    int len = strlen(cheat_buffer);
+    
+    //adiciona a tecla ao buffer (limitando tamanho)
+    if (len < MAX_CHEAT_LENGTH - 1) {
+        cheat_buffer[len] = tecla;
+        cheat_buffer[len+1] = '\0';
+    }
+    
+    //verifica se a sequencia completa foi digitada 
+    if (strstr(cheat_buffer, CHEAT_CODE)) {
+        cheat_activated = true;
+        memset(cheat_buffer, 0, MAX_CHEAT_LENGTH); // reseta o buffer
+    }
+}
+
 
 void textoCentralizado (char *texto, int fonteTamanho, int posY, Color cor) {
     int larguraTexto = MeasureText(texto, fonteTamanho);
@@ -338,6 +364,15 @@ EstadoJogo loop_jogo (personagem_t *jetpack, bool *isPaused) {
                 20, JANELA_Y/2 + 20, WHITE);
             if(IsKeyPressed(KEY_M)) {estado = MENU;}
         }
+
+        // Easter Egg
+        // detectar o easteregg digitando lucas
+        if (IsKeyPressed(KEY_L)) verificar_cheat('l');
+        if (IsKeyPressed(KEY_U)) verificar_cheat('u');
+        if (IsKeyPressed(KEY_C)) verificar_cheat('c');
+        if (IsKeyPressed(KEY_A)) verificar_cheat('a');
+        if (IsKeyPressed(KEY_S)) verificar_cheat('s');
+        if (IsKeyPressed(KEY_W)) cheat_activated = false;
 
         EndDrawing();
     }
