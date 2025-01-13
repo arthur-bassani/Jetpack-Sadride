@@ -86,11 +86,19 @@ void checar_colisoes_itens(personagem_t *jetpack, item_t itens[], int *moedas_co
             if (CheckCollisionRecs(hitbox_item, hitbox_jp)) {
                 switch (itens[i].tipo) {
                 case CHAR_PAREDE:
-                    // colisao vertical...
-                    // se for em cima ou em baixo do jogador...
+                    if (jetpack->y  <= hitbox_item.y) {
+                        //colisao vinda de baixo (personagem bate no teto do item)
+                        jetpack->y = hitbox_item.y - jetpack->altura;
+                        jetpack->velocidade = 0;
+                    } else if (jetpack->y >=  hitbox_item.y) {
+                        //colisao vinda de cima (personagem bate no chao do item)
+                        jetpack->y = hitbox_item.y + hitbox_item.height;
+                        jetpack->velocidade = 0;
+                    }
                     break;
                 case CHAR_ESPINHO:
-                    // acabar...
+                    
+                    //PlaySound(som_dano);
                     break;
                 }
             }
