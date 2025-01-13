@@ -37,14 +37,15 @@ typedef enum estados{  // Estados do Jogo
     MENU,
     JOGO,
     LEADERBOARD,
-    SAIR
+    SAIR,
+    GAMEOVER
 }EstadoJogo;
 
 /* STRUCTS */
 
 typedef struct leaderboard{ //leaderboard
-    char nome[25];
-    unsigned long int pontos;
+    char nome[20];
+    int pontos;
 }leaderboard_t;
 
 /* FUNCOES */
@@ -54,6 +55,8 @@ int tela_inicial(); //menu inicial
 int tela_leaderboard (int estado); //tela do leaderboard
 int carregar_leaderboard(char *nome_arquivo, leaderboard_t *jogador); //retorna num de jogadores na tabela
 void selection_sort(leaderboard_t *jogadores, int n_max); //ordena a exibicao na tela leaderboard
+int atualizar_leaderboard(char *nome_arquivo, int pontuacao, int num_jogadores_leaderboard); //atualiza leaderboard apos gameover
+int tela_gameover(int estado, int pontuacao); //tela do gameover
 
 //funcoes main.c
 void movimento(int *y, float *velocidade, int jetpackaltura); //vertical da jetpack

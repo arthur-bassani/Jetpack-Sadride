@@ -62,7 +62,7 @@ int tela_inicial(){
                 break;
             }
         }
-        
+        if(IsKeyPressed(KEY_O)) {estado= GAMEOVER; estado = tela_gameover(estado, 999999);} //para testar tela gameover
         if(IsKeyPressed(KEY_N)) {estado = JOGO; break;}
         if(IsKeyPressed(KEY_J)) {estado = LEADERBOARD; estado = tela_leaderboard(estado);}
         if(IsKeyPressed(KEY_Q)) {estado = SAIR; break;}
@@ -105,7 +105,7 @@ int tela_leaderboard (int estado){
         else{
             for (i = 0; i < num_jogadores_leaderboard; i++) {
                 char str_temp[100]; //string que aparecera na tela
-                snprintf(str_temp, 100, "%d. %s - %ld", i + 1, jogador[i].nome, jogador[i].pontos);
+                snprintf(str_temp, 100, "%d. %s - %d", i + 1, jogador[i].nome, jogador[i].pontos);
                 Color cor;
                 switch (i){
                 case 0: cor = GOLD; break;
@@ -159,4 +159,153 @@ void selection_sort(leaderboard_t *jogadores, int n_max) { //ordena a exibicao n
             jogadores[maior_i] = temp;
         }
     }
+}
+
+int atualizar_leaderboard(char *nome_arquivo, int pontuacao, int num_jogadores_leaderboard){//atualiza leaderboard apos gameover
+
+    leaderboard_t jogador[5];
+    char novo_nome[20] = {'\0'};
+
+    int i;
+
+    int key; //tecla pressionada
+    int continuar_escrita = 1; //1 para permanecer
+    int num_letras=0; //num de letras digitadas
+
+    Rectangle caixa_texto = { JANELA_X/2 - 100, JANELA_Y/2, 500, 50 };
+
+    FILE *fp = fopen(nome_arquivo, "rb+");
+    if(fp == NULL) return -1;
+
+    fread(jogador, sizeof(leaderboard_t), 5, fp);
+
+    selection_sort(jogador, num_jogadores_leaderboard);
+
+    if(pontuacao > jogador[4].pontos){
+        while(continuar_escrita == 1){
+
+            BeginDrawing();
+
+                ClearBackground(BLACK);
+                DrawRectangleLines(10, 10, JANELA_X-20, JANELA_Y-20, WHITE);
+
+                DrawText("GAMEOVER!", JANELA_X / 2 - (MeasureText("GAMEOVER!", 30)/2), 20, 30, RED);
+
+                DrawText("Leaderboard prévio", 100, 70, 30, WHITE);
+
+                for (i = 0; i < num_jogadores_leaderboard; i++) {
+                    char str_temp[100]; //string que aparecera na tela
+                    snprintf(str_temp, 100, "%d. %s - %d", i + 1, jogador[i].nome, jogador[i].pontos);
+                    Color cor;
+                    switch (i){
+                    case 0: cor = GOLD; break;
+                    case 1: cor = LIGHTGRAY; break;
+                    case 2: cor = BROWN; break;
+                    default: cor = DARKGRAY; }
+                    DrawText(str_temp, 100+MeasureText("Leaderboard prévio", 30)/2 - MeasureText(str_temp, 20)/2, JANELA_Y/3 + i * 40, 20, cor);
+                }
+
+                DrawFPS(10,10);
+                DrawText("Nova top 5 pontuação! Insira um nome:", (int)caixa_texto.x + 5, (int)caixa_texto.y -45, 30, WHITE);
+                DrawRectangleRec(caixa_texto, LIGHTGRAY);
+                DrawRectangleLines((int)caixa_texto.x, (int)caixa_texto.y, (int)caixa_texto.width, (int)caixa_texto.height, RED);
+                DrawText(novo_nome, (int)caixa_texto.x + 5, (int)caixa_texto.y + 8, 40, MAROON);
+                
+            EndDrawing();
+            key = GetCharPressed();
+            while (key > 0){
+                if ((key >= 65) && (key <= 122) && (num_letras < 19)){
+                    novo_nome[num_letras] = (char) key;
+                    novo_nome[num_letras + 1] = '\0';
+                    num_letras++;
+                }      
+                key = GetCharPressed();
+            }   
+            if(IsKeyPressed(KEY_BACKSPACE)){
+                num_letras--;
+                if(num_letras < 0){ num_letras = 0;}
+                novo_nome[num_letras] = '\0';
+            }
+            if(IsKeyPressed(KEY_ENTER) && num_letras > 0){
+                continuar_escrita = 0;
+            }
+
+        }
+        strcpy(jogador[4].nome, novo_nome);
+        jogador[4].pontos = pontuacao;
+        rewind(fp);
+        fwrite(jogador, sizeof(leaderboard_t), 5, fp);
+    }
+
+    fclose(fp);
+    return 0;
+}
+
+int tela_gameover(int estado, int pontuacao){
+
+    int i;
+    SetTargetFPS(FPS);
+
+    leaderboard_t jogador[5];
+
+    Rectangle botaoRetornar = {JANELA_X/2 - BOTAO_LARG/2, JANELA_Y-100, BOTAO_LARG, BOTAO_ALT};
+    Rectangle botaoTeclaM = {JANELA_X/2 - BOTAO_LARG/2 -70, JANELA_Y-100, BOTAO_ALT, BOTAO_ALT};
+
+    unsigned int num_jogadores_leaderboard = carregar_leaderboard("leaderboard.bin", jogador); 
+    selection_sort(jogador, num_jogadores_leaderboard);   
+
+    while(estado == GAMEOVER && !WindowShouldClose()){
+
+        Vector2 mousePos = GetMousePosition();
+
+        BeginDrawing();
+
+            ClearBackground(BLACK);
+            DrawFPS(10,10);
+            DrawRectangleLines(10, 10, JANELA_X-20, JANELA_Y-20, WHITE);
+
+            DrawText("GAMEOVER!", JANELA_X / 2 - (MeasureText("GAMEOVER!", 30)/2), 20, 30, RED);
+
+            DrawText("Leaderboard", JANELA_X/2 - MeasureText("Leaderboard", 30)/2, 70, 30, WHITE);
+
+            DrawRectangleRec(botaoRetornar, LIGHTGRAY);
+            DrawText("Retornar", JANELA_X / 2  - (MeasureText("Retornar", 20)/2), botaoRetornar.y + 15, 20, BLACK);
+            DrawRectangleRec(botaoTeclaM, GRAY);
+            DrawText("M", botaoTeclaM.x + 8, botaoTeclaM.y + 2, 50, BLACK);
+
+        if(num_jogadores_leaderboard == -1){ DrawText("Erro ao carregar Leaderboard!",
+                        JANELA_X / 2 - (MeasureText("Erro ao carregar Leaderboard!", 26)/2),JANELA_Y/2, 26, RED);}
+        else{
+            for (i = 0; i < num_jogadores_leaderboard; i++) {
+                char str_temp[100]; //string que aparecera na tela
+                snprintf(str_temp, 100, "%d. %s - %d", i + 1, jogador[i].nome, jogador[i].pontos);
+                Color cor;
+                switch (i){
+                case 0: cor = GOLD; break;
+                case 1: cor = LIGHTGRAY; break;
+                case 2: cor = BROWN; break;
+                default: cor = DARKGRAY; }
+                DrawText(str_temp, JANELA_X/2 - MeasureText(str_temp, 20)/2, JANELA_Y/3 + i * 40, 20, cor);
+            }
+        }
+
+        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+            mousePos = GetMousePosition();
+            if (CheckCollisionPointRec(mousePos, botaoRetornar)) {
+                estado = MENU;
+            }
+        }
+
+        if(pontuacao > jogador[4].pontos){
+            estado = MENU; 
+        }
+
+        if(IsKeyPressed(KEY_M)) {estado = MENU;}
+
+        EndDrawing();
+    }
+
+    atualizar_leaderboard("leaderboard.bin", pontuacao, num_jogadores_leaderboard);
+
+    return estado;
 }
