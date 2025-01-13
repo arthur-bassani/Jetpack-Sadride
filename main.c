@@ -1,10 +1,12 @@
 #include "sadride.h"
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
 
 //n sei aonde colocar isso
 char cheat_buffer [MAX_CHEAT_LENGTH] = "";
 bool cheat_activated = false;
+int inv_gravidade = 1;
 
 typedef struct{
     int x, y;
@@ -78,8 +80,8 @@ void textoCentralizado (char *texto, int fonteTamanho, int posY, Color cor) {
 }
 
 void movimento(int *y, float *velocidade, int jetpackaltura) {
-    const float gravidade = 0.5f; //valores de gravidade e impulso livres para mudanca
-    const float impulso = -5.0f;
+    const float gravidade = inv_gravidade * .5f; //valores de gravidade e impulso livres para mudanca
+    const float impulso = inv_gravidade * -5.0f;
 
     // veloc afetada por impulso caso ESPACO
     if (IsKeyDown(KEY_SPACE)) {
@@ -225,6 +227,7 @@ EstadoJogo loop_jogo (personagem_t *jetpack, bool *isPaused) {
 
     // eventos
     missil_t missil = {{-2 * JANELA_X, 0, TAM_TILE, TAM_TILE}}; // inicializa o missil fora da tela
+    missil_t inversor_gravidade = {{-5 * JANELA_X, 0, TAM_TILE, TAM_TILE}};
 
     srand(RAND_SEED);
 
@@ -305,7 +308,9 @@ EstadoJogo loop_jogo (personagem_t *jetpack, bool *isPaused) {
                 lancar_missil(&missil, 2 * TAM_TILE, 9 * TAM_TILE, velocidade_mapa * FATOR_VEL_MISSIL);
                 PlaySound(som_missil);
             }
-
+            if (distancia_percorrida >= DIST_MIN_MISSIL && !ha_missil_tela(&inversor_gravidade) && deve_lancar_missil(distancia_percorrida+100, fase)) {
+                lancar_missil(&inversor_gravidade, 2 * TAM_TILE, 9 * TAM_TILE, velocidade_mapa * FATOR_VEL_MISSIL);
+            }
             // Laser
             /*if (fase >= 2) {
                 ;
@@ -324,7 +329,18 @@ EstadoJogo loop_jogo (personagem_t *jetpack, bool *isPaused) {
             
             DrawRectangleRec(missil.hitbox, COR_MISSIL);
         }
-
+        if (ha_missil_tela(&inversor_gravidade)) {
+            if (!*isPaused) {
+                mover_missil(&inversor_gravidade);
+            }
+            
+            if (ha_missil_tela(&inversor_gravidade) && CheckCollisionRecs(personagem_retangulo(jetpack), inversor_gravidade.hitbox)) {
+                inv_gravidade *= (-1);
+                inversor_gravidade.hitbox.x = -50; inversor_gravidade.hitbox.y = -50;
+            }
+            
+            DrawRectangleRec(inversor_gravidade.hitbox, RED);
+        }
         // Calculo da pontuacao
         // no pdf eh a distancia que eh multiplicada por 10, mas acho que assim faz mais sentido...
         pontuacao = distancia_percorrida + 10 * moedas_coletadas;
@@ -400,6 +416,7 @@ int main() {
 
         if(estado == JOGO) {  // verificar se o jogo deve ser rodado
             jetpack = inicializar_personagem();
+            inv_gravidade = 1;
             estado = loop_jogo(&jetpack, &isPaused);
         }
 
