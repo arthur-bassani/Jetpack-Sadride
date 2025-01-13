@@ -56,6 +56,7 @@ void movimento(int *y, float *velocidade, int jetpackaltura) {
 
 void inicializar_jogo () {
     InitWindow(JANELA_X, JANELA_Y, "Jetpack Sadride");
+    InitAudioDevice();
     SetExitKey(0); // O ESC nao fecha mais a janela
     DisableCursor(); HideCursor();
     SetTargetFPS(FPS); // fps do jogo
@@ -66,7 +67,7 @@ Rectangle personagem_retangulo(personagem_t *jetpack) {
 }
 
 // Checa as colisoes com os itens do fundo
-void checar_colisoes_itens(personagem_t *jetpack, item_t itens[], int *moedas_coletadas) {
+void checar_colisoes_itens(personagem_t *jetpack, item_t itens[], int *moedas_coletadas, Sound som_moeda) {
     int i;
     Rectangle hitbox_jp = personagem_retangulo(jetpack);
 
@@ -77,6 +78,7 @@ void checar_colisoes_itens(personagem_t *jetpack, item_t itens[], int *moedas_co
             if (CheckCollisionCircleRec(hitbox_item.centro, hitbox_item.raio, hitbox_jp)) {
                 (*moedas_coletadas)++;
                 itens[i].tipo = CHAR_ESPACO;
+                PlaySound(som_moeda);
             }
         } else if (char_representa_item(itens[i].tipo)) {
             Rectangle hitbox_item = item_retangulo(&itens[i]);
@@ -101,9 +103,9 @@ int pegar_mapa(int fase, char mapa[LINHAS_MAPA][COLUNAS_MAPA]) {
 }
 
 // Desenha os textos da pontuacao
-void escrever_pontuacao(int fase, int pontuacao) {
+void escrever_pontuacao(int pontuacao) {
     // mostrando tambem a fase, mas acho melhor depois em outro lugar (temp)
-    DrawText(TextFormat("%d %08d", fase, pontuacao), TXT_PONT_X, TXT_PONT_Y, TXT_PONT_FONTE, TXT_PONT_COR);
+    DrawText(TextFormat("%08d", pontuacao), TXT_PONT_X, TXT_PONT_Y, TXT_PONT_FONTE, TXT_PONT_COR);
     //DrawText(TextFormat("Distância percorrida: %08d", distancia_percorrida), TXT_PONT_X, TXT_DIST_Y, TXT_PONT_FONTE, TXT_PONT_COR);
     //DrawText(TextFormat("Moedas coletadas: %08d", moedas_coletadas), TXT_PONT_X, TXT_MOEDAS_Y, TXT_PONT_FONTE, TXT_PONT_COR);
 }
@@ -111,6 +113,12 @@ void escrever_pontuacao(int fase, int pontuacao) {
 EstadoJogo loop_jogo (personagem_t *jetpack, bool *isPaused) {
     EstadoJogo estado = JOGO;
     *isPaused = false;
+
+    // sons
+    Sound som_moeda = LoadSound("resources/sons/moeda.wav");
+    Sound som_fase = LoadSound("resources/sons/fase.wav");
+    //Sound som_dano = LoadSound("resources/sons/dano.wav");
+    //Music musica = LoadMusicStream("resources/sons/musica.wav"); // ?
 
     // fundo
     char mapa[LINHAS_MAPA][COLUNAS_MAPA] = {0};
@@ -180,7 +188,7 @@ EstadoJogo loop_jogo (personagem_t *jetpack, bool *isPaused) {
 
         // Escreve a pontuacao na tela
         // eh interessante que sejam a ultima coisa a ser desenhada, para ficar bem na frente
-        escrever_pontuacao(fase, pontuacao);
+        escrever_pontuacao(pontuacao);
 
         if (VELOCIMETRO) {
             const char *text = TextFormat("%09.6f", velocidade_mapa / TAM_TILE);
@@ -198,8 +206,8 @@ EstadoJogo loop_jogo (personagem_t *jetpack, bool *isPaused) {
         }
 
         // colisoes
-        checar_colisoes_itens(jetpack, atual, &moedas_coletadas);
-        checar_colisoes_itens(jetpack, proxima, &moedas_coletadas);
+        checar_colisoes_itens(jetpack, atual, &moedas_coletadas, som_moeda);
+        checar_colisoes_itens(jetpack, proxima, &moedas_coletadas, som_moeda);
 
         // Calculo da pontuacao
         // no pdf eh a distancia que eh multiplicada por 10, mas acho que assim faz mais sentido...
@@ -210,12 +218,17 @@ EstadoJogo loop_jogo (personagem_t *jetpack, bool *isPaused) {
         // Fazer o "deslizamento" se a secao atual sai da tela
         if (proxima[0].x <= 0) {
             // passar de fase (trocar de mapa)
+            int mudou_fase = 0;
             if (fase == 1 && pontuacao >= PONT_FASE_2 && pegar_mapa(2, mapa_aux)) {
                 fase = 2;
-                pegar_mapa(fase, mapa);
-                // aumentar velocidade / velocidade max?
+                mudou_fase = 1;
             } else if (fase == 2 && pontuacao >= PONT_FASE_3 && pegar_mapa(3, mapa_aux)) {
                 fase = 3;
+                mudou_fase = 1;
+            }
+
+            if (mudou_fase) {
+                PlaySound(som_fase);
                 pegar_mapa(fase, mapa);
                 // aumentar velocidade / velocidade max?
             }
@@ -247,6 +260,11 @@ EstadoJogo loop_jogo (personagem_t *jetpack, bool *isPaused) {
 
         EndDrawing();
     }
+
+    // descarregar sons
+    UnloadSound(som_moeda);
+    UnloadSound(som_fase);
+
     return estado;
 }
 
