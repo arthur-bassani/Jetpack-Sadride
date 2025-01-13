@@ -9,6 +9,11 @@ typedef struct{
     Texture2D textura; //adicionar png
 }personagem_t;
 
+typedef struct {
+    Rectangle hitbox;
+    float velocidade;
+} missil_t;
+
 personagem_t inicializar_personagem() {
     personagem_t jetpack;
     jetpack.x = JANELA_X/6;
@@ -62,60 +67,83 @@ void inicializar_jogo () {
     SetTargetFPS(FPS); // fps do jogo
 }
 
+// Retorna o personagem como um retangulo para ver as colisoes
 Rectangle personagem_retangulo(personagem_t *jetpack) {
     return (Rectangle) {jetpack->x, jetpack->y, jetpack->largura, jetpack->altura};
 }
 
-// Checa as colisoes com os itens do fundo
-void checar_colisoes_itens(personagem_t *jetpack, item_t itens[], int *moedas_coletadas, Sound som_moeda) {
-    int i;
+// Checa as colisoes com um item do fundo
+void checar_colisoes_item(personagem_t *jetpack, item_t *item, int *moedas_coletadas, Sound som_moeda) {
     Rectangle hitbox_jp = personagem_retangulo(jetpack);
 
-    for (i = 0; i < MAX_ITENS; i++) {
-        if (itens[i].tipo == CHAR_MOEDA) {
-            circulo_t hitbox_item = item_circulo(&itens[i]);
-            
-            if (CheckCollisionCircleRec(hitbox_item.centro, hitbox_item.raio, hitbox_jp)) {
-                (*moedas_coletadas)++;
-                itens[i].tipo = CHAR_ESPACO;
-                PlaySound(som_moeda);
-            }
-        } else if (char_representa_item(itens[i].tipo)) {
-            Rectangle hitbox_item = item_retangulo(&itens[i]);
+    if (item->tipo == CHAR_MOEDA) {
+        circulo_t hitbox_item = item_circulo(item);
+        
+        if (CheckCollisionCircleRec(hitbox_item.centro, hitbox_item.raio, hitbox_jp)) {
+            (*moedas_coletadas)++;
+            item->tipo = CHAR_ESPACO;
+            PlaySound(som_moeda);
+        }
+    } else if (char_representa_item(item->tipo)) {
+        Rectangle hitbox_item = item_retangulo(item);
 
-            if (CheckCollisionRecs(hitbox_item, hitbox_jp)) {
-                switch (itens[i].tipo) {
-                case CHAR_PAREDE:
-                    if (jetpack->y  <= hitbox_item.y) {
-                        //colisao vinda de baixo (personagem bate no teto do item)
-                        jetpack->y = hitbox_item.y - jetpack->altura;
-                        jetpack->velocidade = 0;
-                    } else if (jetpack->y >=  hitbox_item.y) {
-                        //colisao vinda de cima (personagem bate no chao do item)
-                        jetpack->y = hitbox_item.y + hitbox_item.height;
-                        jetpack->velocidade = 0;
-                    }
-                    break;
-                case CHAR_ESPINHO:
-                    
-                    //PlaySound(som_dano);
-                    break;
+        if (CheckCollisionRecs(hitbox_item, hitbox_jp)) {
+            switch (item->tipo) {
+            case CHAR_PAREDE:
+                if (jetpack->y  <= hitbox_item.y) {
+                    //colisao vinda de baixo (personagem bate no teto do item)
+                    jetpack->y = hitbox_item.y - jetpack->altura;
+                    jetpack->velocidade = 0;
+                } else if (jetpack->y >=  hitbox_item.y) {
+                    //colisao vinda de cima (personagem bate no chao do item)
+                    jetpack->y = hitbox_item.y + hitbox_item.height;
+                    jetpack->velocidade = 0;
                 }
+                break;
+            case CHAR_ESPINHO:
+                
+                //PlaySound(som_dano);
+                break;
             }
         }
     }
 }
 
+// Pega o pelo arquivo, usando a fase informada
 int pegar_mapa(int fase, char mapa[LINHAS_MAPA][COLUNAS_MAPA]) {
     return le_arq_mapa(TextFormat("resources/mapas/mapa%d.txt", fase), mapa);
 }
 
+// Retorna 1 se consegue pegar o mapa pelo arquivo, usando uma matriz de caracteres auxiliar
+int consegue_pegar_mapa(int fase) {
+    char mapa[LINHAS_MAPA][COLUNAS_MAPA] = {0};
+    return pegar_mapa(fase, mapa);
+}
+
 // Desenha os textos da pontuacao
 void escrever_pontuacao(int pontuacao) {
-    // mostrando tambem a fase, mas acho melhor depois em outro lugar (temp)
     DrawText(TextFormat("%08d", pontuacao), TXT_PONT_X, TXT_PONT_Y, TXT_PONT_FONTE, TXT_PONT_COR);
     //DrawText(TextFormat("Distância percorrida: %08d", distancia_percorrida), TXT_PONT_X, TXT_DIST_Y, TXT_PONT_FONTE, TXT_PONT_COR);
     //DrawText(TextFormat("Moedas coletadas: %08d", moedas_coletadas), TXT_PONT_X, TXT_MOEDAS_Y, TXT_PONT_FONTE, TXT_PONT_COR);
+}
+
+// MISSIL
+int deve_lancar_missil(int distancia_percorrida, int fase) {
+    return distancia_percorrida * fase % FATOR_FREQ_MISSIL == 0;
+}
+
+void lancar_missil(missil_t *missil, int y_max, int y_min, float velocidade) {
+    missil->hitbox.x = JANELA_X;
+    missil->hitbox.y = y_max + rand() % (y_max - y_min + 1);
+    missil->velocidade = velocidade;
+}
+
+int ha_missil_tela(missil_t *missil) {
+    return missil->hitbox.x + missil->hitbox.width >= 0;
+}
+
+void mover_missil(missil_t *missil) {
+    missil->hitbox.x -= (int) missil->velocidade;
 }
 
 EstadoJogo loop_jogo (personagem_t *jetpack, bool *isPaused) {
@@ -130,18 +158,18 @@ EstadoJogo loop_jogo (personagem_t *jetpack, bool *isPaused) {
 
     // fundo
     char mapa[LINHAS_MAPA][COLUNAS_MAPA] = {0};
-    char mapa_aux[LINHAS_MAPA][COLUNAS_MAPA] = {0}; // para checar se o arquivo esta ok ao mudar o mapa
+    int i, andou_um;
+    float velocidade_mapa = VEL_INICIAL_MAPA;
+    int distancia_percorrida = 0, moedas_coletadas = 0, pontuacao = 0;
+    int atual_x_antes, proxima_x_antes;
+    int fase = 1; // identifica o mapa sendo usado
 
     // secoes
     item_t atual[MAX_ITENS] = {0};
     item_t proxima[MAX_ITENS] = {0};
 
-    int i, andou_um;
-    float velocidade_mapa = VEL_INICIAL_MAPA;
-    int distancia_percorrida = 0, moedas_coletadas = 0, pontuacao = 0;
-    int atual_x_antes, proxima_x_antes;
-
-    int fase = 1; // identifica o mapa sendo usado
+    // eventos
+    missil_t missil = {{-2 * JANELA_X, 0, TAM_TILE, TAM_TILE}};
 
     srand(RAND_SEED);
 
@@ -188,6 +216,10 @@ EstadoJogo loop_jogo (personagem_t *jetpack, bool *isPaused) {
                     andou_um = 1;
                 }
             }
+
+            // colisoes?
+            checar_colisoes_item(jetpack, &atual[i], &moedas_coletadas, som_moeda);
+            checar_colisoes_item(jetpack, &proxima[i], &moedas_coletadas, som_moeda);
         }
 
         if (VER_TILES) { // dev, para ver as secoes
@@ -211,26 +243,37 @@ EstadoJogo loop_jogo (personagem_t *jetpack, bool *isPaused) {
             if (VEL_MAPA_VARIAVEL) {
                 aumentar_velocidade(&velocidade_mapa, PASSO_VEL_MAPA, VEL_MAX_MAPA);
             }
+
+            // Eventos
+            if (distancia_percorrida >= DIST_MIN_MISSIL && !ha_missil_tela(&missil) && deve_lancar_missil(distancia_percorrida, fase)) {
+                lancar_missil(&missil, 2 * TAM_TILE, 9 * TAM_TILE, velocidade_mapa * FATOR_VEL_MISSIL);
+            }
         }
 
-        // colisoes
-        checar_colisoes_itens(jetpack, atual, &moedas_coletadas, som_moeda);
-        checar_colisoes_itens(jetpack, proxima, &moedas_coletadas, som_moeda);
+        if (ha_missil_tela(&missil)) {
+            if (!*isPaused) {
+                mover_missil(&missil);
+            }
+            
+            if (ha_missil_tela(&missil) && CheckCollisionRecs(personagem_retangulo(jetpack), missil.hitbox)) {
+                // game over
+            }
+            
+            DrawRectangleRec(missil.hitbox, COR_MISSIL);
+        }
 
         // Calculo da pontuacao
         // no pdf eh a distancia que eh multiplicada por 10, mas acho que assim faz mais sentido...
         pontuacao = distancia_percorrida + 10 * moedas_coletadas;
 
-        // passar de fase? if (pontuacao >= ...) // trocar o mapa...
-
         // Fazer o "deslizamento" se a secao atual sai da tela
         if (proxima[0].x <= 0) {
             // passar de fase (trocar de mapa)
             int mudou_fase = 0;
-            if (fase == 1 && pontuacao >= PONT_FASE_2 && pegar_mapa(2, mapa_aux)) {
+            if (fase == 1 && pontuacao >= PONT_FASE_2 && consegue_pegar_mapa(2)) {
                 fase = 2;
                 mudou_fase = 1;
-            } else if (fase == 2 && pontuacao >= PONT_FASE_3 && pegar_mapa(3, mapa_aux)) {
+            } else if (fase == 2 && pontuacao >= PONT_FASE_3 && consegue_pegar_mapa(3)) {
                 fase = 3;
                 mudou_fase = 1;
             }
@@ -238,7 +281,6 @@ EstadoJogo loop_jogo (personagem_t *jetpack, bool *isPaused) {
             if (mudou_fase) {
                 PlaySound(som_fase);
                 pegar_mapa(fase, mapa);
-                // aumentar velocidade / velocidade max?
             }
 
             deslizamento_secoes(atual, proxima, mapa);

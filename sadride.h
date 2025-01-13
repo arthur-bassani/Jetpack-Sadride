@@ -18,6 +18,12 @@
 #define TXT_DIST_Y      0.1 * TAM_TILE + TXT_PONT_Y + TXT_PONT_FONTE
 #define TXT_MOEDAS_Y    0.1 * TAM_TILE + TXT_DIST_Y + TXT_PONT_FONTE
 
+// Missil
+#define DIST_MIN_MISSIL    50   // distancia minima a ser percorrida para o primeiro missil aparecer
+#define FATOR_FREQ_MISSIL  140  // 140 pareceu bom, mas tem que ver
+#define FATOR_VEL_MISSIL   1.75 // velocidade do missil em relacao a do mapa
+#define COR_MISSIL         BLUE
+
 //constantes da janela 16:9 ratio
 //#define JANELA_Y 600
 //#define JANELA_X (JANELA_Y/9) *16

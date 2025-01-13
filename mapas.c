@@ -34,18 +34,18 @@ int valida_secoes(char primeira_linha[]) {
 
 // Valida se o chao e o teto estao completos por "paredes" ou espinhos
 // Retorna 0 se ha algum buraco
-/*int valida_chao_teto(char mapa[LINHAS_MAPA][COLUNAS_MAPA]) { // aqui deu problema... ver depois
+int valida_chao_teto(char mapa[LINHAS_MAPA][COLUNAS_MAPA]) {
     int j;
 
     for (j = 0; j < COLUNAS_MAPA; j++) {
-        if (mapa[0][j] != CHAR_PAREDE || mapa[0][j] != CHAR_ESPINHO || 
-            mapa[LINHAS_MAPA - 1][j] != CHAR_PAREDE || mapa[LINHAS_MAPA - 1][j] != CHAR_ESPINHO) {
+        if (mapa[0][j] != CHAR_PAREDE && mapa[0][j] != CHAR_ESPINHO && 
+            mapa[LINHAS_MAPA - 1][j] != CHAR_PAREDE && mapa[LINHAS_MAPA - 1][j] != CHAR_ESPINHO) {
             return 0;
         }
     }
 
     return 1;
-}*/
+}
 
 // Le o mapa e salva em uma matriz, com todas as validacoes
 // Retorna 1 se deu tudo certo e 0 caso contrario
@@ -95,5 +95,5 @@ int le_arq_mapa(const char *nome_arq, char mapa[LINHAS_MAPA][COLUNAS_MAPA]) {
 
     fclose(arq);
 
-    return 1;
+    return valida_chao_teto(mapa);
 }
