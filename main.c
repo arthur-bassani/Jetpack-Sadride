@@ -1,10 +1,12 @@
 #include "sadride.h"
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
 
 //n sei aonde colocar isso
 char cheat_buffer [MAX_CHEAT_LENGTH] = "";
 bool cheat_activated = false;
+int inv_gravidade = 1;
 
 typedef struct{
     int x, y;
@@ -19,7 +21,7 @@ typedef struct {
 } missil_t;
 
 // sons
-Sound som_moeda, som_dano, som_fase, som_missil;
+Sound som_moeda, som_dano, som_fase, som_missil, som_grav;
 
 // texturas
 Texture2D texturaEspinho;
@@ -29,6 +31,7 @@ void carregar_sons() {
     som_dano = LoadSound("resources/sons/dano.wav");
     som_fase = LoadSound("resources/sons/fase.wav");
     som_missil = LoadSound("resources/sons/missil.wav");
+    som_grav = LoadSound("resources/sons/grav_hit.wav");
 }
 
 void descarregar_sons() {
@@ -36,6 +39,7 @@ void descarregar_sons() {
     UnloadSound(som_dano);
     UnloadSound(som_fase);
     UnloadSound(som_missil);
+    UnloadSound(som_grav);
 }
 
 personagem_t inicializar_personagem() {
@@ -78,8 +82,8 @@ void textoCentralizado (char *texto, int fonteTamanho, int posY, Color cor) {
 }
 
 void movimento(int *y, float *velocidade, int jetpackaltura) {
-    const float gravidade = 0.5f; //valores de gravidade e impulso livres para mudanca
-    const float impulso = -5.0f;
+    const float gravidade = inv_gravidade * .5f; //valores de gravidade e impulso livres para mudanca
+    const float impulso = inv_gravidade * -5.0f;
 
     // veloc afetada por impulso caso ESPACO
     if (IsKeyDown(KEY_SPACE)) {
@@ -225,6 +229,7 @@ EstadoJogo loop_jogo (personagem_t *jetpack, bool *isPaused) {
 
     // eventos
     missil_t missil = {{-2 * JANELA_X, 0, TAM_TILE, TAM_TILE}}; // inicializa o missil fora da tela
+    missil_t inversor_gravidade = {{-5 * JANELA_X, 0, TAM_TILE, TAM_TILE}};
 
     srand(RAND_SEED);
 
@@ -305,11 +310,10 @@ EstadoJogo loop_jogo (personagem_t *jetpack, bool *isPaused) {
                 lancar_missil(&missil, 2 * TAM_TILE, 9 * TAM_TILE, velocidade_mapa * FATOR_VEL_MISSIL);
                 PlaySound(som_missil);
             }
-
-            // Laser
-            /*if (fase >= 2) {
-                ;
-            }*/
+            if (distancia_percorrida >= DIST_MIN_MISSIL && !ha_missil_tela(&inversor_gravidade) && deve_lancar_missil(distancia_percorrida+100, 1)) {
+                lancar_missil(&inversor_gravidade, 2 * TAM_TILE, 9 * TAM_TILE, velocidade_mapa * FATOR_VEL_MISSIL);
+                PlaySound(som_missil);
+            }
         }
 
         if (ha_missil_tela(&missil)) {
@@ -325,6 +329,19 @@ EstadoJogo loop_jogo (personagem_t *jetpack, bool *isPaused) {
             DrawRectangleRec(missil.hitbox, COR_MISSIL);
         }
 
+        if (ha_missil_tela(&inversor_gravidade)) {
+            if (!*isPaused) {
+                mover_missil(&inversor_gravidade);
+            }
+            
+            if (ha_missil_tela(&inversor_gravidade) && CheckCollisionRecs(personagem_retangulo(jetpack), inversor_gravidade.hitbox)) {
+                PlaySound(som_grav);
+                inv_gravidade *= (-1);
+                inversor_gravidade.hitbox.x = -50; inversor_gravidade.hitbox.y = -50;
+            }
+            
+            DrawRectangleRec(inversor_gravidade.hitbox, COR_INV_GRAV);
+        }
         // Calculo da pontuacao
         // no pdf eh a distancia que eh multiplicada por 10, mas acho que assim faz mais sentido...
         pontuacao = distancia_percorrida + 10 * moedas_coletadas;
@@ -400,6 +417,7 @@ int main() {
 
         if(estado == JOGO) {  // verificar se o jogo deve ser rodado
             jetpack = inicializar_personagem();
+            inv_gravidade = 1;
             estado = loop_jogo(&jetpack, &isPaused);
         }
 
