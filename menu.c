@@ -62,7 +62,7 @@ int tela_inicial(){
                 break;
             }
         }
-        if(IsKeyPressed(KEY_O)) {estado= GAMEOVER; estado = tela_gameover(estado, 999999);} //para testar tela gameover
+        //if(IsKeyPressed(KEY_O)) {estado= GAMEOVER; estado = tela_gameover(estado, 999999);} //para testar tela gameover
         if(IsKeyPressed(KEY_N)) {estado = JOGO; break;}
         if(IsKeyPressed(KEY_J)) {estado = LEADERBOARD; estado = tela_leaderboard(estado);}
         if(IsKeyPressed(KEY_Q)) {estado = SAIR; break;}
