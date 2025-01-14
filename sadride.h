@@ -22,9 +22,10 @@
 
 // Missil
 #define DIST_MIN_MISSIL    50   // distancia minima a ser percorrida para o primeiro missil aparecer
-#define FATOR_FREQ_MISSIL  50   // pareceu bom, mas tem que ver
+#define FATOR_FREQ_MISSIL  70   // pareceu bom, mas tem que ver
 #define FATOR_VEL_MISSIL   1.75 // velocidade do missil em relacao a do mapa
-#define COR_MISSIL         BLUE
+#define COR_MISSIL         RED
+#define COR_INV_GRAV       BLUE
 
 // Laser
 //#define COR_ARMADO     ORANGE
